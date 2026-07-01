@@ -1,0 +1,15 @@
+{
+  "limits": {
+    "keywords": 100
+  },
+  "rules": {
+    "leading-trailing-whitespace": "off",
+    "keyword-capacity": "info"
+  },
+  "stopWords": ["a", "an", "and", "app", "best", "for", "free", "the", "with", "your"],
+  "locales": {
+    "allow": null,
+    "extra": [],
+    "ignore": []
+  }
+}

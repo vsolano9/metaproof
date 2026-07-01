@@ -1,0 +1,37 @@
+name: metaproof
+description: Lint iOS App Store metadata (a fastlane deliver metadata folder) for field-length and ASO keyword problems.
+author: TheChosenVictor LLC
+branding:
+  icon: check-circle
+  color: green
+
+inputs:
+  path:
+    description: Path to the metadata folder to lint.
+    required: false
+    default: fastlane/metadata
+  strict:
+    description: Fail on warnings as well as errors.
+    required: false
+    default: "false"
+  config:
+    description: Path to a metaproof.json config file (optional).
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "24"
+    - shell: bash
+      env:
+        METAPROOF_PATH: ${{ inputs.path }}
+        METAPROOF_STRICT: ${{ inputs.strict }}
+        METAPROOF_CONFIG: ${{ inputs.config }}
+      run: |
+        args=("$METAPROOF_PATH")
+        if [ "$METAPROOF_STRICT" = "true" ]; then args+=("--strict"); fi
+        if [ -n "$METAPROOF_CONFIG" ]; then args+=("--config" "$METAPROOF_CONFIG"); fi
+        node "$GITHUB_ACTION_PATH/src/cli.ts" "${args[@]}"

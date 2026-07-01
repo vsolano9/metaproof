@@ -1,0 +1,46 @@
+{
+  "name": "metaproof",
+  "version": "0.1.0",
+  "description": "Lint your iOS App Store metadata (the fastlane deliver metadata folder) for field-length and ASO keyword problems before you submit. Per-locale, Unicode-correct, zero dependencies, fully offline.",
+  "type": "module",
+  "bin": {
+    "metaproof": "src/cli.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "files": [
+    "src/**/*.ts",
+    "!src/**/*.test.ts",
+    "action.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "npm run typecheck && npm test"
+  },
+  "keywords": [
+    "ios",
+    "app-store",
+    "app-store-connect",
+    "fastlane",
+    "deliver",
+    "metadata",
+    "aso",
+    "keywords",
+    "linter",
+    "localization",
+    "ci"
+  ],
+  "author": "TheChosenVictor LLC",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.0"
+  }
+}
