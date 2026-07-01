@@ -39,6 +39,14 @@
   ],
   "author": "TheChosenVictor LLC",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vsolano9/metaproof.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vsolano9/metaproof/issues"
+  },
+  "homepage": "https://github.com/vsolano9/metaproof#readme",
   "devDependencies": {
     "@types/node": "^24.0.0",
     "typescript": "^5.8.0"
