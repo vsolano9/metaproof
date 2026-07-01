@@ -4,25 +4,27 @@
   "description": "Lint your iOS App Store metadata (the fastlane deliver metadata folder) for field-length and ASO keyword problems before you submit. Per-locale, Unicode-correct, zero dependencies, fully offline.",
   "type": "module",
   "bin": {
-    "metaproof": "src/cli.ts"
+    "metaproof": "dist/cli.js"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./dist/index.js"
   },
   "engines": {
     "node": ">=24.0.0"
   },
   "files": [
-    "src/**/*.ts",
-    "!src/**/*.test.ts",
+    "dist",
     "action.yml",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist",
     "test": "node --test \"src/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
-    "lint": "npm run typecheck && npm test"
+    "lint": "npm run typecheck && npm test",
+    "prepack": "npm run clean && npm run build"
   },
   "keywords": [
     "ios",

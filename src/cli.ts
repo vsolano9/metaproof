@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * metaproof executable. Thin wrapper over `run(argv, io)` in cli-core.ts.
- * Requires Node >= 24 (runs TypeScript directly via native type stripping).
+ * The published npm package ships this compiled to dist/cli.js; the GitHub
+ * Action and local development run this source directly on Node >= 24.
  */
 
 import { run, type Io } from "./cli-core.ts";

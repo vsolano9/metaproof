@@ -12,7 +12,7 @@ Lint your iOS App Store metadata before you submit.
 
 ## Requirements
 
-Node.js 24 or newer. metaproof ships as TypeScript and runs directly on Node's native type stripping, so there is no build step and no compiler to install to use it.
+Node.js 24 or newer, and zero runtime dependencies. The published package ships compiled JavaScript, so `npx metaproof` and `npm install` just work with no build step or compiler on your side. (The GitHub Action and local development run the TypeScript sources directly on Node's native type stripping.)
 
 ## Install
 
