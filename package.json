@@ -1,6 +1,6 @@
 {
   "name": "metaproof",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Lint your iOS App Store metadata (the fastlane deliver metadata folder) for field-length and ASO keyword problems before you submit. Per-locale, Unicode-correct, zero dependencies, fully offline.",
   "type": "module",
   "bin": {
