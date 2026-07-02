@@ -105,6 +105,14 @@ export interface LocaleConfig {
   ignore: string[];
 }
 
+/** Opt-in thresholds for the description checks. `0` disables a threshold. */
+export interface DescriptionConfig {
+  /** Warn when the description has fewer than this many words. `0` disables it. */
+  minWords: number;
+  /** Warn when any single description line exceeds this many characters. `0` disables it. */
+  maxLineLength: number;
+}
+
 export interface Config {
   limits: FieldLimits;
   /** Rule id -> level. Missing keys fall back to built-in defaults. */
@@ -112,4 +120,6 @@ export interface Config {
   /** Words treated as ASO keyword-field waste. */
   stopWords: string[];
   locales: LocaleConfig;
+  /** Thresholds for the description word-count and per-line checks. */
+  description: DescriptionConfig;
 }

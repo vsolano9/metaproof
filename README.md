@@ -7,6 +7,8 @@ Lint your iOS App Store metadata before you submit.
 - Per-locale, Unicode-correct character counting (a family emoji counts as one character, not eleven).
 - Field-length checks for every App Store text field.
 - An ASO keyword-field linter: wasted separator spaces, duplicates, stop words, cross-field duplication, and unused keyword budget.
+- A `--fix` mode that applies the safe keyword cleanups (separator spaces, duplicates, empty terms) in place.
+- Description checks: word count, plus opt-in minimum-word-count and per-line-length thresholds.
 - URL fields checked for a valid `http(s)` address.
 - **Zero runtime dependencies.** Fully offline. No network, no credentials, no telemetry.
 
@@ -39,6 +41,7 @@ If `path` is omitted, metaproof looks for `./fastlane/metadata`, then `./metadat
 | Option | Description |
 | --- | --- |
 | `--config <file>` | JSON config to override limits, rules, stop words, and locales. |
+| `--fix` | Apply safe keyword-field cleanups in place, then report the fixed tree. |
 | `--strict` | Exit non-zero on warnings as well as errors. |
 | `--json` | Print the report as JSON. |
 | `--quiet` | Hide clean locales and info findings. |
@@ -99,6 +102,16 @@ These are widely used App Store Optimization best practices, not Apple-mandated 
 - `keyword-cross-field-duplicate`: keywords Apple already indexes from your app name and subtitle.
 - `keyword-capacity`: how much of the 100-character budget is unused (informational).
 
+### Description
+
+The description does not feed keyword search, but it drives conversion. Three config-tunable rules:
+
+- `description-word-count`: the description's word and character count (informational).
+- `description-min-words`: warns when the description has fewer words than `description.minWords`. Opt-in; off until you set a threshold.
+- `description-line-length`: warns when any single line exceeds `description.maxLineLength` user-perceived characters, which reads poorly on a phone. Opt-in.
+
+Word counting splits on whitespace, so it is most meaningful for space-separated languages; for CJK text treat it as a rough signal.
+
 ### Structure
 
 - `unknown-locale`: a metadata subfolder that is not a known App Store locale.
@@ -107,6 +120,16 @@ These are widely used App Store Optimization best practices, not Apple-mandated 
 - `leading-trailing-whitespace`: stray whitespace around a field value.
 
 Non-locale folders such as `review_information/` are skipped. The `default/` fallback folder is linted like a locale.
+
+## Fixing safely with `--fix`
+
+`metaproof --fix` rewrites each locale's `keywords.txt` in place, applying only cleanups that cannot change what you meant:
+
+- removes spaces around commas (each one wastes a character of the 100-character budget),
+- drops empty terms left by double or trailing commas,
+- removes exact duplicate terms (case-insensitive, keeping the first occurrence and its casing).
+
+A summary of what changed goes to stderr; stdout still carries the normal report, run against the fixed tree. Judgment calls stay with you: `--fix` never removes stop words or keywords duplicated from the name/subtitle, and never truncates an over-limit field. Files that need no changes are not touched. Run it on a tree that is under version control so you can review the diff.
 
 ## A note on character counting
 
@@ -124,7 +147,8 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
     "leading-trailing-whitespace": "off"
   },
   "stopWords": ["the", "a", "app", "best", "free"],
-  "locales": { "allow": null, "extra": ["en-IN"], "ignore": ["fr-CA"] }
+  "locales": { "allow": null, "extra": ["en-IN"], "ignore": ["fr-CA"] },
+  "description": { "minWords": 150, "maxLineLength": 80 }
 }
 ```
 
@@ -132,6 +156,7 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
 - `rules`: set a rule to `error`, `warning`, `info`, or `off`.
 - `stopWords`: replace the default keyword stop-word list.
 - `locales.allow`: when set, only these locale folders are linted. `extra`: additional valid locale codes. `ignore`: locale folders to skip.
+- `description.minWords` / `description.maxLineLength`: opt-in description thresholds; `0` (the default) disables a threshold.
 
 ## GitHub Action
 
@@ -165,8 +190,8 @@ npm test            # node --test
 
 ## Roadmap
 
-- [ ] Optional word-count and per-line description checks.
-- [ ] A `--fix` mode for safe keyword-field cleanups (space removal, dedupe).
+- [x] Optional word-count and per-line description checks.
+- [x] A `--fix` mode for safe keyword-field cleanups (space removal, dedupe).
 - [ ] Screenshot and preview presence checks (currently out of scope).
 
 ## Contributing

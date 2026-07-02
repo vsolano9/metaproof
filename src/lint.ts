@@ -7,6 +7,7 @@
  */
 
 import { defaultConfig } from "./config.ts";
+import { lintDescription } from "./description.ts";
 import { lintKeywords } from "./keywords.ts";
 import { scanMetadata } from "./scan.ts";
 import { validateLocale } from "./validate.ts";
@@ -36,6 +37,7 @@ export async function lint(root: string, config: Config = defaultConfig()): Prom
       ...(localeDiagnostics.get(localeScan.locale) ?? []),
       ...validateLocale(localeScan, config),
       ...lintKeywords(localeScan, config),
+      ...lintDescription(localeScan, config),
     ];
     const ok = !findings.some((f) => f.severity === "error");
     locales.push({ locale: localeScan.locale, findings, ok });

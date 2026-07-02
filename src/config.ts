@@ -30,6 +30,9 @@ const DEFAULT_RULES: Readonly<Record<string, RuleLevel>> = {
   "keyword-stop-word": "warning",
   "keyword-empty-term": "warning",
   "keyword-capacity": "info",
+  "description-word-count": "info",
+  "description-min-words": "warning",
+  "description-line-length": "warning",
 };
 
 /**
@@ -41,6 +44,16 @@ const DEFAULT_STOP_WORDS: readonly string[] = [
   "on", "or", "the", "to", "with", "your",
 ];
 
+/**
+ * Default description thresholds. Both are opt-in (`0` = disabled) because there
+ * is no universal minimum word count or line length for an App Store
+ * description; teams enable them per project.
+ */
+const DEFAULT_DESCRIPTION: Readonly<Config["description"]> = {
+  minWords: 0,
+  maxLineLength: 0,
+};
+
 /** A fresh default configuration. */
 export function defaultConfig(): Config {
   return {
@@ -48,6 +61,7 @@ export function defaultConfig(): Config {
     rules: { ...DEFAULT_RULES },
     stopWords: [...DEFAULT_STOP_WORDS],
     locales: { allow: null, extra: [], ignore: [] },
+    description: { ...DEFAULT_DESCRIPTION },
   };
 }
 
@@ -113,6 +127,18 @@ export function mergeConfig(base: Config, input: unknown): Config {
     }
   }
 
+  if ("description" in input) {
+    if (!isPlainObject(input.description)) throw new Error("config.description must be an object");
+    for (const key of ["minWords", "maxLineLength"] as const) {
+      if (!(key in input.description)) continue;
+      const value = input.description[key];
+      if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+        throw new Error(`config.description.${key} must be a non-negative integer`);
+      }
+      merged.description[key] = value;
+    }
+  }
+
   return merged;
 }
 
@@ -126,6 +152,7 @@ function defaultConfigFrom(base: Config): Config {
       extra: [...base.locales.extra],
       ignore: [...base.locales.ignore],
     },
+    description: { ...base.description },
   };
 }
 

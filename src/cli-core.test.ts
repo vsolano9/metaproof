@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -40,6 +40,11 @@ test("parseArgs parses flags, options, and a positional path", () => {
   assert.equal(args.json, true);
   assert.equal(args.quiet, true);
   assert.equal(args.color, false);
+});
+
+test("parseArgs parses --fix and defaults it to false", () => {
+  assert.equal(parseArgs([]).fix, false);
+  assert.equal(parseArgs(["--fix"]).fix, true);
 });
 
 test("parseArgs supports --config with a separate value", () => {
@@ -123,6 +128,25 @@ test("run auto-loads metaproof.json from the working directory", async () => {
   assert.equal(await run([root], fakeIo({ cwd: process.cwd() })), 0);
   // With auto-loaded config (limit 10) it fails.
   assert.equal(await run([root], fakeIo({ cwd: base })), 1);
+});
+
+test("run --fix rewrites the keywords file, then reports the fixed tree", async () => {
+  const { root } = await makeMetadata({ "en-US/keywords.txt": "photo, editor, photo\n" });
+  const io = fakeIo();
+  assert.equal(await run([root, "--fix"], io), 0);
+  assert.equal(await readFile(join(root, "en-US/keywords.txt"), "utf8"), "photo,editor\n");
+  // Summary goes to stderr; the stdout report reflects the already-fixed tree.
+  assert.match(io.err, /fixed 1 file/);
+  assert.doesNotMatch(io.out, /duplicate/);
+  assert.match(io.out, /PASS/);
+});
+
+test("run --fix on a clean tree reports nothing to fix and leaves files alone", async () => {
+  const { root } = await makeMetadata({ "en-US/keywords.txt": "photo,editor\n" });
+  const io = fakeIo();
+  assert.equal(await run([root, "--fix"], io), 0);
+  assert.match(io.err, /nothing to fix/i);
+  assert.equal(await readFile(join(root, "en-US/keywords.txt"), "utf8"), "photo,editor\n");
 });
 
 test("run auto-detects fastlane/metadata when no path is given", async () => {

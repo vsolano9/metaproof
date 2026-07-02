@@ -10,6 +10,7 @@ import { readFile } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
 
 import { defaultConfig, loadConfig } from "./config.ts";
+import { fixMetadata, renderFixSummary } from "./fix.ts";
 import { lint } from "./lint.ts";
 import { exitCode, renderHuman, renderJson } from "./report.ts";
 
@@ -29,6 +30,8 @@ export interface ParsedArgs {
   strict: boolean;
   json: boolean;
   quiet: boolean;
+  /** Apply safe keyword-field cleanups to disk before reporting. */
+  fix: boolean;
   /** false when `--no-color` was passed, otherwise undefined (auto). */
   color?: boolean;
   help: boolean;
@@ -46,6 +49,8 @@ Arguments:
 
 Options:
   --config <file>      JSON config to override limits, rules, stop words, locales.
+  --fix                Apply safe keyword-field cleanups (dedupe, drop empty
+                       terms, remove separator spaces) in place, then report.
   --strict             Exit non-zero on warnings as well as errors.
   --json               Print the report as JSON.
   --quiet              Hide clean locales and info findings.
@@ -61,7 +66,7 @@ Exit codes:
 
 /** Parse CLI arguments. Throws on invalid usage. */
 export function parseArgs(argv: string[]): ParsedArgs {
-  const args: ParsedArgs = { strict: false, json: false, quiet: false, help: false, version: false };
+  const args: ParsedArgs = { strict: false, json: false, quiet: false, fix: false, help: false, version: false };
   const positionals: string[] = [];
 
   for (let i = 0; i < argv.length; i++) {
@@ -69,6 +74,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     if (token === "--strict") args.strict = true;
     else if (token === "--json") args.json = true;
     else if (token === "--quiet") args.quiet = true;
+    else if (token === "--fix") args.fix = true;
     else if (token === "--no-color") args.color = false;
     else if (token === "-h" || token === "--help") args.help = true;
     else if (token === "-v" || token === "--version") args.version = true;
@@ -144,6 +150,14 @@ export async function run(argv: string[], io: Io): Promise<number> {
   }
 
   const path = resolvePath(args.path, io.cwd);
+
+  // --fix rewrites keywords files in place first; the summary goes to stderr so
+  // stdout stays a clean (optionally JSON) report of the fixed tree.
+  if (args.fix) {
+    const result = await fixMetadata(path, config);
+    io.error(`${renderFixSummary(result)}\n`);
+  }
+
   const report = await lint(path, config);
 
   if (args.json) {

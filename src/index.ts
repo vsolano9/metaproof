@@ -12,6 +12,9 @@
  */
 
 export { lint } from "./lint.ts";
+export { lintKeywords } from "./keywords.ts";
+export { lintDescription, wordCount } from "./description.ts";
+export { fixKeywords, fixMetadata, renderFixSummary } from "./fix.ts";
 export { defaultConfig, loadConfig, mergeConfig } from "./config.ts";
 export { renderHuman, renderJson, exitCode } from "./report.ts";
 export { DEFAULT_LIMITS, FIELD_DEFS, fieldForFilename, lengthFields, urlFields } from "./fields.ts";
@@ -20,11 +23,13 @@ export { KNOWN_LOCALES, NON_LOCALE_FOLDERS, isKnownLocale } from "./locales.ts";
 
 export type {
   Config,
+  DescriptionConfig,
   FieldDef,
   FieldId,
   FieldLimits,
   Finding,
   LintReport,
+  LocaleConfig,
   LocaleReport,
   LocaleScan,
   RuleLevel,
@@ -32,3 +37,4 @@ export type {
   Severity,
 } from "./types.ts";
 export type { HumanOptions } from "./report.ts";
+export type { AppliedFix, FixResult, KeywordFix } from "./fix.ts";

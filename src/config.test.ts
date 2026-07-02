@@ -60,6 +60,22 @@ test("mergeConfig merges locale settings", () => {
   assert.equal(cfg.locales.allow, null);
 });
 
+test("defaultConfig disables both description thresholds", () => {
+  assert.deepEqual(defaultConfig().description, { minWords: 0, maxLineLength: 0 });
+});
+
+test("mergeConfig merges description thresholds and keeps the other", () => {
+  const cfg = mergeConfig(defaultConfig(), { description: { minWords: 150 } });
+  assert.equal(cfg.description.minWords, 150);
+  assert.equal(cfg.description.maxLineLength, 0);
+});
+
+test("mergeConfig rejects malformed description settings", () => {
+  assert.throws(() => mergeConfig(defaultConfig(), { description: "nope" }));
+  assert.throws(() => mergeConfig(defaultConfig(), { description: { minWords: -1 } }));
+  assert.throws(() => mergeConfig(defaultConfig(), { description: { maxLineLength: 1.5 } }));
+});
+
 test("mergeConfig rejects a non-object input", () => {
   assert.throws(() => mergeConfig(defaultConfig(), "notobject"));
   assert.throws(() => mergeConfig(defaultConfig(), 42));

@@ -11,5 +11,9 @@
     "allow": null,
     "extra": [],
     "ignore": []
+  },
+  "description": {
+    "minWords": 0,
+    "maxLineLength": 0
   }
 }

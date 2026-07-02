@@ -11,6 +11,13 @@ node src/cli.ts fixtures/metadata
 
 It exits `1` and prints a per-locale report. Try `--strict`, `--json`, and `--quiet` to see the other output modes.
 
+To try `--fix`, copy the fixture somewhere first so the bundled example stays intact:
+
+```bash
+cp -R fixtures/metadata /tmp/metaproof-demo
+node src/cli.ts /tmp/metaproof-demo --fix
+```
+
 ## Example config
 
 [`metaproof.json`](metaproof.json) shows a typical override file: it turns the whitespace rule off and pins a custom stop-word list. Point at it explicitly:
