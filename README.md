@@ -161,13 +161,13 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
 ## GitHub Action
 
 ```yaml
-- uses: vsolano9/metaproof@main
+- uses: vsolano9/metaproof@v0
   with:
     path: fastlane/metadata
     strict: "false"
 ```
 
-The action sets up Node 24 and runs metaproof, so a failed check blocks the workflow. See [`action.yml`](action.yml).
+`@v0` tracks the latest `0.x` release; pin to an exact tag such as `@v0.2.0` if you prefer to opt into updates deliberately. The action sets up Node 24 and runs metaproof, so a failed check blocks the workflow. See [`action.yml`](action.yml).
 
 ## Programmatic API
 
