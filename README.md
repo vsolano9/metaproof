@@ -161,7 +161,7 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
 ## GitHub Action
 
 ```yaml
-- uses: TheChosenVictor/metaproof@v1
+- uses: vsolano9/metaproof@main
   with:
     path: fastlane/metadata
     strict: "false"
