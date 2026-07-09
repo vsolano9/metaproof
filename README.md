@@ -4,6 +4,8 @@ Lint your iOS App Store metadata before you submit.
 
 `metaproof` scans a [fastlane `deliver`](https://docs.fastlane.tools/actions/deliver/) `metadata/` folder and checks every localized field against Apple's App Store Connect character limits and a set of ASO keyword best practices. It runs locally, catches problems per locale before an upload fails with a vague error, and returns a non-zero exit code so it can gate CI.
 
+It is the text half of a submission-preflight pair: [screenproof](https://github.com/vsolano9/screenproof) lints the screenshots the same way.
+
 - Per-locale, Unicode-correct character counting (a family emoji counts as one character, not eleven).
 - Field-length checks for every App Store text field.
 - An ASO keyword-field linter: wasted separator spaces, duplicates, stop words, cross-field duplication, and unused keyword budget.
