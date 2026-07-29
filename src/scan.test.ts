@@ -25,6 +25,30 @@ test("scanMetadata reports a missing metadata folder as an error diagnostic", as
   assert.ok(result.diagnostics.some((d) => d.rule === "missing-metadata" && d.severity === "error"));
 });
 
+test("scanMetadata reports an existing metadata folder with no locales", async () => {
+  const result = await scanMetadata(await makeTree({}), defaultConfig());
+  assert.equal(result.locales.length, 0);
+  assert.ok(result.diagnostics.some((d) => d.rule === "missing-locale" && d.severity === "error"));
+});
+
+test("scanMetadata reports a metadata folder containing only skipped folders", async () => {
+  const root = await makeTree({ "review_information/first_name.txt": "Victor" });
+  const result = await scanMetadata(root, defaultConfig());
+  assert.deepEqual(result.skippedFolders, ["review_information"]);
+  assert.equal(result.locales.length, 0);
+  assert.ok(result.diagnostics.some((d) => d.rule === "missing-locale" && d.severity === "error"));
+});
+
+test("scanMetadata reports when locale filters leave nothing to lint", async () => {
+  const root = await makeTree({ "en-US/name.txt": "Focus Timer" });
+  const config = defaultConfig();
+  config.locales.ignore = ["en-US"];
+  const result = await scanMetadata(root, config);
+  assert.deepEqual(result.skippedFolders, ["en-US"]);
+  assert.equal(result.locales.length, 0);
+  assert.ok(result.diagnostics.some((d) => d.rule === "missing-locale" && d.severity === "error"));
+});
+
 test("scanMetadata reads locale field files and strips a trailing newline", async () => {
   const root = await makeTree({
     "en-US/name.txt": "MyApp\n",

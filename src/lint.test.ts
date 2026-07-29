@@ -24,6 +24,15 @@ test("lint reports a missing metadata folder as not ok", async () => {
   assert.ok(report.findings.some((f) => f.rule === "missing-metadata"));
 });
 
+test("lint rejects an existing metadata folder with zero scannable locales", async () => {
+  const root = await makeTree({ "review_information/first_name.txt": "Victor" });
+  const report = await lint(root);
+  assert.equal(report.ok, false);
+  assert.equal(report.errorCount, 1);
+  assert.equal(report.locales.length, 0);
+  assert.ok(report.findings.some((f) => f.rule === "missing-locale"));
+});
+
 test("lint passes a clean locale", async () => {
   const root = await makeTree({
     "en-US/name.txt": "Focus Timer",

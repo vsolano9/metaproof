@@ -38,6 +38,14 @@ test("cli exits 1 and prints FAIL on a broken tree", async () => {
   assert.match(stdout, /FAIL/);
 });
 
+test("cli exits 1 instead of passing a metadata tree with zero locales", async () => {
+  const root = await makeTree({ "review_information/first_name.txt": "Victor" });
+  const { status, stdout } = runCli([root, "--no-color"]);
+  assert.equal(status, 1);
+  assert.match(stdout, /no locale folders to lint/i);
+  assert.match(stdout, /0 locales — FAIL/);
+});
+
 test("cli --version prints a semver", () => {
   const { status, stdout } = runCli(["--version"]);
   assert.equal(status, 0);

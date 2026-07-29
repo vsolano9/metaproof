@@ -67,7 +67,7 @@ export interface ScanResult {
   locales: LocaleScan[];
   /** Non-locale folders that were intentionally skipped, e.g. `review_information`. */
   skippedFolders: string[];
-  /** Scan-level findings (missing root, unknown locale, empty field file). */
+  /** Scan-level findings (missing root or locale, unknown locale, empty field file). */
   diagnostics: Finding[];
 }
 

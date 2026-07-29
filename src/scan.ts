@@ -78,6 +78,15 @@ export async function scanMetadata(root: string, config: Config): Promise<ScanRe
     result.locales.push(localeScan);
   }
 
+  if (result.locales.length === 0) {
+    result.diagnostics.push({
+      locale: "",
+      rule: "missing-locale",
+      severity: "error",
+      message: `no locale folders to lint in ${root} (add an App Store locale or default folder)`,
+    });
+  }
+
   return result;
 }
 

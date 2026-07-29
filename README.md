@@ -116,6 +116,10 @@ Word counting splits on whitespace, so it is most meaningful for space-separated
 
 ### Structure
 
+- `missing-locale`: the metadata root exists but contains no scannable App Store
+  locale or `default/` folder. This is an error because a zero-locale scan did
+  not validate any localized metadata. Filtering every locale through
+  `locales.allow` or `locales.ignore` produces the same error.
 - `unknown-locale`: a metadata subfolder that is not a known App Store locale.
 - `unknown-file`: an unrecognized `.txt` file inside a locale folder.
 - `empty-field`: a recognized field file with no content.
