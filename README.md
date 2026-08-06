@@ -59,6 +59,7 @@ Exit codes: `0` clean, `1` lint errors (or warnings under `--strict`), `2` usage
 $ metaproof fastlane/metadata
 
 ✖ de-DE
+    error   description        Description is required for App Store submission but is missing (no description.txt)
     error   subtitle           Subtitle is 51/30 characters (21 over the limit)
     error   privacy_url        Privacy Policy URL is not a valid http(s) URL: "example.de/datenschutz"
     warning keywords           keyword(s) already indexed from the app name or subtitle: timer
@@ -70,11 +71,36 @@ $ metaproof fastlane/metadata
     warning keywords           low-value keyword(s): the
     warning keywords           keyword(s) already indexed from the app name or subtitle: focus, timer, pomodoro, study
     info    keywords           keywords use 55/100 characters (45 unused)
+    info    description        description has 28 words (154/4000 characters)
 
-Summary: 2 errors, 5 warnings, 2 info across 3 locales — FAIL
+Summary: 3 errors, 5 warnings, 3 info across 3 locales — FAIL
 ```
 
 ## What it checks
+
+### Required fields
+
+A content linter only judges values that are there. The failure that actually
+blocks a submission is the file that is missing: a locale folder holding just
+`keywords.txt` has nothing wrong with it and is still rejected by App Store
+Connect.
+
+- `required-field`: a field App Store Connect requires is absent, empty, or
+  whitespace-only. Error by default.
+
+The default list is App Name, Description, Support URL, and Privacy Policy URL —
+the four Apple requires before a version can be submitted. What's New and
+Keywords are left out on purpose: What's New only applies to updates, and teams
+disagree about whether an empty keywords field should fail CI. Add either through
+`required` in the config.
+
+A value can be inherited. fastlane deliver falls back to `metadata/default/` for
+any locale without its own file, so a field set there satisfies every locale.
+`default/` is not itself a submitted localisation, so it is only checked for
+required fields when it is the one folder in the tree.
+
+To turn the check off entirely, set `"rules": { "required-field": "off" }` or
+`"required": []`.
 
 ### Field length
 
@@ -125,7 +151,7 @@ Word counting splits on whitespace, so it is most meaningful for space-separated
 - `empty-field`: a recognized field file with no content.
 - `leading-trailing-whitespace`: stray whitespace around a field value.
 
-Non-locale folders such as `review_information/` are skipped. The `default/` fallback folder is linted like a locale.
+Non-locale folders such as `review_information/` are skipped. The `default/` fallback folder is linted like a locale, except for `required-field` (see [Required fields](#required-fields)).
 
 ## Fixing safely with `--fix`
 
@@ -154,7 +180,8 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
   },
   "stopWords": ["the", "a", "app", "best", "free"],
   "locales": { "allow": null, "extra": ["en-IN"], "ignore": ["fr-CA"] },
-  "description": { "minWords": 150, "maxLineLength": 80 }
+  "description": { "minWords": 150, "maxLineLength": 80 },
+  "required": ["name", "description", "support_url", "privacy_url"]
 }
 ```
 
@@ -163,6 +190,9 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
 - `stopWords`: replace the default keyword stop-word list.
 - `locales.allow`: when set, only these locale folders are linted. `extra`: additional valid locale codes. `ignore`: locale folders to skip.
 - `description.minWords` / `description.maxLineLength`: opt-in description thresholds; `0` (the default) disables a threshold.
+- `required`: the fields every locale must carry. Replaces the default list, so
+  include the defaults you still want. Any field name from the table above is
+  valid; an unknown one is a config error. `[]` disables the check.
 
 ## GitHub Action
 
@@ -194,11 +224,17 @@ npm run typecheck   # tsc --noEmit
 npm test            # node --test
 ```
 
+## Changelog
+
+Release history, including which changes can fail a previously clean run, is in
+[CHANGELOG.md](CHANGELOG.md).
+
 ## Roadmap
 
 - [x] Optional word-count and per-line description checks.
 - [x] A `--fix` mode for safe keyword-field cleanups (space removal, dedupe).
-- [ ] Screenshot and preview presence checks (currently out of scope).
+- [x] Required-field checks for the fields App Store Connect will not submit without.
+- [ ] Screenshot and preview presence checks (currently out of scope — see [screenproof](https://github.com/vsolano9/screenproof)).
 
 ## Contributing
 

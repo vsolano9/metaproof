@@ -57,3 +57,6 @@ export function urlFields(): FieldDef[] {
 
 /** Field ids that carry a character limit, matching {@link FieldLimits}. */
 export const LENGTH_FIELD_IDS: readonly FieldId[] = lengthFields().map((f) => f.id);
+
+/** Every field id metaproof knows, for validating user-supplied field lists. */
+export const FIELD_IDS: ReadonlySet<string> = new Set(FIELD_DEFS.map((def) => def.id));

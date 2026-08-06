@@ -25,7 +25,13 @@ async function makeTree(files: Record<string, string>): Promise<string> {
 }
 
 test("cli exits 0 and prints PASS on a clean tree", async () => {
-  const root = await makeTree({ "en-US/name.txt": "Focus Timer", "en-US/keywords.txt": "pomodoro,focus,study" });
+  const root = await makeTree({
+    "en-US/name.txt": "Focus Timer",
+    "en-US/description.txt": "A simple focus timer.",
+    "en-US/support_url.txt": "https://example.com/support",
+    "en-US/privacy_url.txt": "https://example.com/privacy",
+    "en-US/keywords.txt": "pomodoro,focus,study",
+  });
   const { status, stdout } = runCli([root, "--no-color"]);
   assert.equal(status, 0);
   assert.match(stdout, /PASS/);

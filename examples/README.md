@@ -2,7 +2,7 @@
 
 ## Try it on the bundled fixture
 
-The repository ships a sample metadata tree at [`../fixtures/metadata`](../fixtures/metadata) that intentionally contains problems (an over-limit German subtitle, a malformed privacy URL, and several keyword-field issues).
+The repository ships a sample metadata tree at [`../fixtures/metadata`](../fixtures/metadata) that intentionally contains problems: a German localization shipped without a translated description, an over-limit German subtitle, a malformed privacy URL, and several keyword-field issues.
 
 ```bash
 # from the repo root
@@ -20,7 +20,7 @@ node src/cli.ts /tmp/metaproof-demo --fix
 
 ## Example config
 
-[`metaproof.json`](metaproof.json) shows a typical override file: it turns the whitespace rule off and pins a custom stop-word list. Point at it explicitly:
+[`metaproof.json`](metaproof.json) shows a typical override file: it turns the whitespace rule off, pins a custom stop-word list, and spells out the required-field list. Point at it explicitly:
 
 ```bash
 node src/cli.ts fixtures/metadata --config examples/metaproof.json

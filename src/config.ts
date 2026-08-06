@@ -10,8 +10,8 @@
 
 import { readFile } from "node:fs/promises";
 
-import { DEFAULT_LIMITS } from "./fields.ts";
-import type { Config, RuleLevel } from "./types.ts";
+import { DEFAULT_LIMITS, FIELD_IDS } from "./fields.ts";
+import type { Config, FieldId, RuleLevel } from "./types.ts";
 
 const RULE_LEVELS: ReadonlySet<string> = new Set(["error", "warning", "info", "off"]);
 
@@ -20,6 +20,7 @@ const DEFAULT_RULES: Readonly<Record<string, RuleLevel>> = {
   "missing-metadata": "error",
   "field-length": "error",
   "url-format": "error",
+  "required-field": "error",
   "empty-field": "warning",
   "leading-trailing-whitespace": "warning",
   "unknown-locale": "warning",
@@ -54,6 +55,14 @@ const DEFAULT_DESCRIPTION: Readonly<Config["description"]> = {
   maxLineLength: 0,
 };
 
+/**
+ * Fields App Store Connect requires before a version can be submitted. Keywords
+ * and What's New are deliberately absent: What's New only applies to updates,
+ * and teams disagree about whether an empty keywords field should block CI. Add
+ * either through `required` in the config file.
+ */
+const DEFAULT_REQUIRED: readonly FieldId[] = ["name", "description", "support_url", "privacy_url"];
+
 /** A fresh default configuration. */
 export function defaultConfig(): Config {
   return {
@@ -62,6 +71,7 @@ export function defaultConfig(): Config {
     stopWords: [...DEFAULT_STOP_WORDS],
     locales: { allow: null, extra: [], ignore: [] },
     description: { ...DEFAULT_DESCRIPTION },
+    required: [...DEFAULT_REQUIRED],
   };
 }
 
@@ -139,6 +149,16 @@ export function mergeConfig(base: Config, input: unknown): Config {
     }
   }
 
+  if ("required" in input) {
+    if (!isStringArray(input.required)) throw new Error("config.required must be an array of strings");
+    for (const id of input.required) {
+      if (!FIELD_IDS.has(id)) {
+        throw new Error(`config.required contains unknown field "${id}"`);
+      }
+    }
+    merged.required = [...new Set(input.required)] as FieldId[];
+  }
+
   return merged;
 }
 
@@ -153,6 +173,7 @@ function defaultConfigFrom(base: Config): Config {
       ignore: [...base.locales.ignore],
     },
     description: { ...base.description },
+    required: [...base.required],
   };
 }
 

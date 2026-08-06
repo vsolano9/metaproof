@@ -20,6 +20,18 @@ function fakeIo(overrides: Partial<Io> = {}): Io & { out: string; err: string } 
   return io as Io & { out: string; err: string };
 }
 
+/**
+ * The fields App Store Connect requires. Spread into any fixture that is meant
+ * to pass; without them the tree is not submittable and `required-field` fails
+ * it, which is the point of the rule.
+ */
+const SUBMITTABLE: Record<string, string> = {
+  "en-US/name.txt": "Focus Timer",
+  "en-US/description.txt": "A simple focus timer.",
+  "en-US/support_url.txt": "https://example.com/support",
+  "en-US/privacy_url.txt": "https://example.com/privacy",
+};
+
 async function makeMetadata(files: Record<string, string>, sub = "metadata"): Promise<{ root: string; base: string }> {
   const base = await mkdtemp(join(tmpdir(), "metaproof-cli-"));
   const root = join(base, sub);
@@ -71,12 +83,19 @@ test("run --version prints a semver and exits 0", async () => {
 
 test("run passes a clean tree with exit 0 and PASS", async () => {
   const { root } = await makeMetadata({
-    "en-US/name.txt": "Focus Timer",
+    ...SUBMITTABLE,
     "en-US/keywords.txt": "pomodoro,focus,study",
   });
   const io = fakeIo();
   assert.equal(await run([root], io), 0);
   assert.match(io.out, /PASS/);
+});
+
+test("run fails a tree that is missing a required field", async () => {
+  const { root } = await makeMetadata({ "en-US/keywords.txt": "pomodoro,focus,study" });
+  const io = fakeIo();
+  assert.equal(await run([root], io), 1);
+  assert.match(io.out, /required for App Store submission/);
 });
 
 test("run fails a broken tree with exit 1 and FAIL", async () => {
@@ -96,7 +115,7 @@ test("run --json emits parseable JSON", async () => {
 });
 
 test("run --strict fails on warnings-only", async () => {
-  const { root } = await makeMetadata({ "en-US/keywords.txt": "the,best" });
+  const { root } = await makeMetadata({ ...SUBMITTABLE, "en-US/keywords.txt": "the,best" });
   assert.equal(await run([root], fakeIo()), 0);
   assert.equal(await run([root, "--strict"], fakeIo()), 1);
 });
@@ -122,7 +141,7 @@ test("run --no-color emits no ANSI escape codes", async () => {
 });
 
 test("run auto-loads metaproof.json from the working directory", async () => {
-  const { root, base } = await makeMetadata({ "en-US/subtitle.txt": "twelve chars" });
+  const { root, base } = await makeMetadata({ ...SUBMITTABLE, "en-US/subtitle.txt": "twelve chars" });
   await writeFile(join(base, "metaproof.json"), JSON.stringify({ limits: { subtitle: 10 } }), "utf8");
   // Without the config the 12-char subtitle passes the default limit of 30.
   assert.equal(await run([root], fakeIo({ cwd: process.cwd() })), 0);
@@ -131,7 +150,7 @@ test("run auto-loads metaproof.json from the working directory", async () => {
 });
 
 test("run --fix rewrites the keywords file, then reports the fixed tree", async () => {
-  const { root } = await makeMetadata({ "en-US/keywords.txt": "photo, editor, photo\n" });
+  const { root } = await makeMetadata({ ...SUBMITTABLE, "en-US/keywords.txt": "photo, editor, photo\n" });
   const io = fakeIo();
   assert.equal(await run([root, "--fix"], io), 0);
   assert.equal(await readFile(join(root, "en-US/keywords.txt"), "utf8"), "photo,editor\n");
@@ -142,7 +161,7 @@ test("run --fix rewrites the keywords file, then reports the fixed tree", async 
 });
 
 test("run --fix on a clean tree reports nothing to fix and leaves files alone", async () => {
-  const { root } = await makeMetadata({ "en-US/keywords.txt": "photo,editor\n" });
+  const { root } = await makeMetadata({ ...SUBMITTABLE, "en-US/keywords.txt": "photo,editor\n" });
   const io = fakeIo();
   assert.equal(await run([root, "--fix"], io), 0);
   assert.match(io.err, /nothing to fix/i);
@@ -150,7 +169,7 @@ test("run --fix on a clean tree reports nothing to fix and leaves files alone", 
 });
 
 test("run auto-detects fastlane/metadata when no path is given", async () => {
-  const { base } = await makeMetadata({ "en-US/name.txt": "Focus Timer" }, "fastlane/metadata");
+  const { base } = await makeMetadata({ ...SUBMITTABLE }, "fastlane/metadata");
   const io = fakeIo({ cwd: base });
   assert.equal(await run([], io), 0);
   assert.match(io.out, /PASS/);

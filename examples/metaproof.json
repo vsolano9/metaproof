@@ -15,5 +15,6 @@
   "description": {
     "minWords": 0,
     "maxLineLength": 0
-  }
+  },
+  "required": ["name", "description", "support_url", "privacy_url"]
 }

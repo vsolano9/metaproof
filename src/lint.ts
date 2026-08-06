@@ -9,9 +9,13 @@
 import { defaultConfig } from "./config.ts";
 import { lintDescription } from "./description.ts";
 import { lintKeywords } from "./keywords.ts";
+import { lintRequired } from "./required.ts";
 import { scanMetadata } from "./scan.ts";
 import { validateLocale } from "./validate.ts";
 import type { Config, Finding, LintReport, LocaleReport } from "./types.ts";
+
+/** fastlane deliver's fallback folder, used for any locale missing a field file. */
+const DEFAULT_LOCALE = "default";
 
 /** Lint a metadata folder. Pass a config to override limits, rules, or locales. */
 export async function lint(root: string, config: Config = defaultConfig()): Promise<LintReport> {
@@ -32,9 +36,21 @@ export async function lint(root: string, config: Config = defaultConfig()): Prom
   const all: Finding[] = [...reportLevel];
   const locales: LocaleReport[] = [];
 
+  // `default/` supplies fallback values rather than being a submitted
+  // localisation, so it is checked for required fields only when it is the sole
+  // folder in the tree — otherwise it would be flagged for fields the real
+  // locales legitimately own.
+  const inherited = scan.locales.find((l) => l.locale === DEFAULT_LOCALE)?.fields ?? {};
+  const hasRealLocale = scan.locales.some((l) => l.locale !== DEFAULT_LOCALE);
+
   for (const localeScan of scan.locales) {
+    const isDefault = localeScan.locale === DEFAULT_LOCALE;
+    const required =
+      isDefault && hasRealLocale ? [] : lintRequired(localeScan, config, isDefault ? {} : inherited);
+
     const findings: Finding[] = [
       ...(localeDiagnostics.get(localeScan.locale) ?? []),
+      ...required,
       ...validateLocale(localeScan, config),
       ...lintKeywords(localeScan, config),
       ...lintDescription(localeScan, config),

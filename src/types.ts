@@ -122,4 +122,6 @@ export interface Config {
   locales: LocaleConfig;
   /** Thresholds for the description word-count and per-line checks. */
   description: DescriptionConfig;
+  /** Fields every locale must carry to be submittable. Empty disables the check. */
+  required: FieldId[];
 }
