@@ -31,3 +31,9 @@ test("the README states Apple's required 100-byte Keywords contract", async () =
   assert.match(readme, /Keywords[^\n]*100 bytes/);
   assert.doesNotMatch(readme, /teams disagree about whether an empty keywords field should fail CI/);
 });
+
+test("the README states Apple's App Name minimum", async () => {
+  const { readme } = await releaseDocs();
+  assert.match(readme, /App Name[^\n]*2–30 characters/);
+  assert.match(readme, /field-min-length[^\n]*two-character minimum/);
+});

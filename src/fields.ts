@@ -25,7 +25,7 @@ export const DEFAULT_LIMITS: FieldLimits = {
 
 /** All fields metaproof validates, in a stable, report-friendly order. */
 export const FIELD_DEFS: readonly FieldDef[] = [
-  { id: "name", filename: "name.txt", label: "App Name", kind: "length", limit: DEFAULT_LIMITS.name },
+  { id: "name", filename: "name.txt", label: "App Name", kind: "length", min: 2, limit: DEFAULT_LIMITS.name },
   { id: "subtitle", filename: "subtitle.txt", label: "Subtitle", kind: "length", limit: DEFAULT_LIMITS.subtitle },
   { id: "keywords", filename: "keywords.txt", label: "Keywords", kind: "length", limit: DEFAULT_LIMITS.keywords },
   { id: "promotional_text", filename: "promotional_text.txt", label: "Promotional Text", kind: "length", limit: DEFAULT_LIMITS.promotional_text },

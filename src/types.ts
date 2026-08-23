@@ -34,6 +34,8 @@ export interface FieldDef {
   /** Human label, e.g. `App Name`. */
   label: string;
   kind: FieldKind;
+  /** Apple-documented minimum for this field, when one exists. */
+  min?: number;
   /** Character limit for `length` fields. Undefined for `url` fields. */
   limit?: number;
 }
@@ -48,7 +50,7 @@ export interface Finding {
   message: string;
   /** Measured character count, when relevant. */
   count?: number;
-  /** Limit compared against, when relevant. */
+  /** Minimum or maximum threshold compared against, when relevant. */
   limit?: number;
 }
 

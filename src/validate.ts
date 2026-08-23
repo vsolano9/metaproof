@@ -38,11 +38,26 @@ export function validateLocale(scan: LocaleScan, config: Config): Finding[] {
     if (value === undefined || value === "") continue;
 
     if (def.kind === "length") {
+      const count = def.id === "keywords" ? utf8ByteCount(value) : graphemeCount(value);
+
+      const minLevel = severity(config, "field-min-length", "error");
+      const minimumCount = def.min === undefined ? count : graphemeCount(value.trim());
+      if (minLevel && def.min !== undefined && minimumCount < def.min) {
+        findings.push({
+          locale,
+          field: def.id,
+          rule: "field-min-length",
+          severity: minLevel,
+          message: `${def.label} must be at least ${def.min} characters (${minimumCount} provided)`,
+          count: minimumCount,
+          limit: def.min,
+        });
+      }
+
       const level = severity(config, "field-length", "error");
       if (level) {
         const limit = config.limits[def.id as keyof Config["limits"]];
         const usesBytes = def.id === "keywords";
-        const count = usesBytes ? utf8ByteCount(value) : graphemeCount(value);
         if (count > limit) {
           const unit = usesBytes ? "bytes" : "characters";
           findings.push({

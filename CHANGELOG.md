@@ -6,6 +6,22 @@ All notable changes to metaproof are recorded here. The format follows
 `0.x`, a new check that can fail a previously clean run ships in a minor
 release, and every such change is called out below.
 
+## [0.5.0] - 2026-08-23
+
+### Fixed
+
+- App Name now enforces Apple's documented two-character minimum, measured in
+  user-perceived characters. A one-character `name.txt` can no longer pass
+  locally and fail later in App Store Connect.
+
+### Changed
+
+- **A tree that passed 0.4.0 can fail 0.5.0.** `field-min-length` is an error by
+  default when App Name contains fewer than two characters. Set
+  `"rules": { "field-min-length": "off" }` only for a workflow that deliberately
+  validates the minimum elsewhere.
+- The GitHub Action example and moving `v0` tag advance to v0.5.0.
+
 ## [0.4.0] - 2026-08-23
 
 ### Fixed
@@ -88,6 +104,7 @@ Superseded by 0.3.0, which carries this fix.
   programmatic `lint()` API, and a GitHub Action. Zero dependencies, fully
   offline.
 
+[0.5.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.5.0
 [0.4.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.4.0
 [0.3.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.3.0
 [0.2.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.2.0

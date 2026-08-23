@@ -7,7 +7,7 @@ Lint your iOS App Store metadata before you submit.
 It is the text half of a submission-preflight pair: [screenproof](https://github.com/vsolano9/screenproof) lints the screenshots the same way.
 
 - Per-locale, Unicode-correct counting: user-perceived characters for ordinary text fields and UTF-8 bytes for Apple's keyword budget.
-- Field-length checks for every App Store text field.
+- Field-length checks for every App Store text field, including Apple's two-character minimum for App Name.
 - An ASO keyword-field linter: wasted separator spaces, duplicates, stop words, cross-field duplication, and unused keyword budget.
 - A `--fix` mode that applies the safe keyword cleanups (separator spaces, duplicates, empty terms) in place.
 - Description checks: word count, plus opt-in minimum-word-count and per-line-length thresholds.
@@ -102,16 +102,16 @@ To turn the check off entirely, set `"rules": { "required-field": "off" }` or
 
 ### Field length
 
-Field limits come from Apple's App Store Connect Help. metaproof measures ordinary text fields in user-perceived characters (grapheme clusters) and the Keywords field in UTF-8 bytes.
+Field limits come from Apple's App Store Connect Help. metaproof measures ordinary text fields in user-perceived characters (grapheme clusters) and the Keywords field in UTF-8 bytes. `field-min-length` rejects an App Name shorter than Apple's two-character minimum; `field-length` enforces the maximums.
 
-| Field | File | Limit |
+| Field | File | Constraint |
 | --- | --- | --- |
-| App Name | `name.txt` | 30 |
-| Subtitle | `subtitle.txt` | 30 |
-| Keywords | `keywords.txt` | 100 bytes |
-| Promotional Text | `promotional_text.txt` | 170 |
-| Description | `description.txt` | 4000 |
-| What's New | `release_notes.txt` | 4000 |
+| App Name | `name.txt` | 2–30 characters |
+| Subtitle | `subtitle.txt` | Maximum 30 characters |
+| Keywords | `keywords.txt` | Maximum 100 bytes |
+| Promotional Text | `promotional_text.txt` | Maximum 170 characters |
+| Description | `description.txt` | Maximum 4000 characters |
+| What's New | `release_notes.txt` | Maximum 4000 characters |
 
 Sources: [App information](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/) and [Platform version information](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/). Apple documents character limits for the ordinary text fields and a 100-byte limit for Keywords. Limits are overridable in config in case Apple changes them.
 
@@ -195,14 +195,14 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
 ## GitHub Action
 
 ```yaml
-- uses: vsolano9/metaproof@v0.4.0
+- uses: vsolano9/metaproof@v0.5.0
   with:
     path: fastlane/metadata
     strict: "false"
 ```
 
 The exact tag keeps CI reproducible. The moving `@v0` tag points to the
-same `v0.4.0` release for users who prefer automatic compatible updates. The
+same `v0.5.0` release for users who prefer automatic compatible updates. The
 action sets up Node 24 and runs metaproof, so a failed check blocks the workflow.
 See [`action.yml`](action.yml).
 

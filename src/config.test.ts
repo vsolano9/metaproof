@@ -10,6 +10,7 @@ import { DEFAULT_LIMITS } from "./fields.ts";
 test("defaultConfig uses Apple's default limits and non-empty rules/stopWords", () => {
   const cfg = defaultConfig();
   assert.deepEqual(cfg.limits, DEFAULT_LIMITS);
+  assert.equal(cfg.rules["field-min-length"], "error");
   assert.ok(Object.keys(cfg.rules).length > 0);
   assert.ok(cfg.stopWords.length > 0);
   assert.equal(cfg.locales.allow, null);

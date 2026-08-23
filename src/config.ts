@@ -19,6 +19,7 @@ const RULE_LEVELS: ReadonlySet<string> = new Set(["error", "warning", "info", "o
 const DEFAULT_RULES: Readonly<Record<string, RuleLevel>> = {
   "missing-metadata": "error",
   "field-length": "error",
+  "field-min-length": "error",
   "url-format": "error",
   "required-field": "error",
   "empty-field": "warning",

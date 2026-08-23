@@ -23,6 +23,43 @@ test("validateLocale accepts a length field exactly at its limit", () => {
   assert.equal(findings.some((x) => x.rule === "field-length"), false);
 });
 
+test("validateLocale rejects an App Name shorter than Apple's two-character minimum", () => {
+  const findings = validateLocale(scanOf({ name: "A" }), defaultConfig());
+  const finding = findings.find((item) => item.rule === "field-min-length" && item.field === "name");
+  assert.ok(finding);
+  assert.equal(finding.severity, "error");
+  assert.equal(finding.count, 1);
+  assert.equal(finding.limit, 2);
+  assert.match(finding.message, /at least 2 characters/);
+});
+
+test("validateLocale accepts an App Name at Apple's two-character minimum", () => {
+  const findings = validateLocale(scanOf({ name: "AB" }), defaultConfig());
+  assert.equal(findings.some((item) => item.rule === "field-min-length"), false);
+});
+
+test("validateLocale measures the App Name minimum in grapheme clusters", () => {
+  const oneGrapheme = validateLocale(scanOf({ name: "👨‍👩‍👧‍👦" }), defaultConfig());
+  assert.ok(oneGrapheme.some((item) => item.rule === "field-min-length"));
+
+  const twoGraphemes = validateLocale(scanOf({ name: "👨‍👩‍👧‍👦A" }), defaultConfig());
+  assert.equal(twoGraphemes.some((item) => item.rule === "field-min-length"), false);
+});
+
+test("validateLocale cannot satisfy the App Name minimum with surrounding whitespace", () => {
+  const findings = validateLocale(scanOf({ name: " A " }), defaultConfig());
+  const minimum = findings.find((item) => item.rule === "field-min-length");
+  assert.equal(minimum?.count, 1);
+  assert.ok(findings.some((item) => item.rule === "leading-trailing-whitespace"));
+});
+
+test("validateLocale honours field-min-length being turned off", () => {
+  const config = defaultConfig();
+  config.rules["field-min-length"] = "off";
+  const findings = validateLocale(scanOf({ name: "A" }), config);
+  assert.equal(findings.some((item) => item.rule === "field-min-length"), false);
+});
+
 test("validateLocale counts by grapheme, not UTF-16 length", () => {
   // 29 letters + one family emoji = 30 graphemes -> at limit, ok.
   const ok = validateLocale(scanOf({ name: "a".repeat(29) + "👨‍👩‍👧‍👦" }), defaultConfig());

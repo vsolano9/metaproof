@@ -44,6 +44,20 @@ test("cli exits 1 and prints FAIL on a broken tree", async () => {
   assert.match(stdout, /FAIL/);
 });
 
+test("cli exits 1 when an App Name is only one character", async () => {
+  const root = await makeTree({
+    "en-US/name.txt": "A",
+    "en-US/description.txt": "A complete app description.",
+    "en-US/support_url.txt": "https://example.com/support",
+    "en-US/privacy_url.txt": "https://example.com/privacy",
+    "en-US/keywords.txt": "focus,timer,study",
+  });
+  const { status, stdout } = runCli([root, "--no-color"]);
+  assert.equal(status, 1);
+  assert.match(stdout, /App Name must be at least 2 characters/);
+  assert.match(stdout, /FAIL/);
+});
+
 test("cli exits 1 instead of passing a metadata tree with zero locales", async () => {
   const root = await makeTree({ "review_information/first_name.txt": "Victor" });
   const { status, stdout } = runCli([root, "--no-color"]);

@@ -28,6 +28,12 @@ test("fieldForFilename maps a fastlane deliver filename to its field def", () =>
   assert.equal(def?.label, "Subtitle");
 });
 
+test("App Name carries Apple's documented two-character minimum", () => {
+  const def = fieldForFilename("name.txt");
+  assert.equal(def?.min, 2);
+  assert.equal(def?.limit, 30);
+});
+
 test("fieldForFilename maps url files to url fields with no limit", () => {
   const def = fieldForFilename("support_url.txt");
   assert.equal(def?.id, "support_url");
