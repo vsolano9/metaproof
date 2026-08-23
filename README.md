@@ -2,11 +2,11 @@
 
 Lint your iOS App Store metadata before you submit.
 
-`metaproof` scans a [fastlane `deliver`](https://docs.fastlane.tools/actions/deliver/) `metadata/` folder and checks every localized field against Apple's App Store Connect character limits and a set of ASO keyword best practices. It runs locally, catches problems per locale before an upload fails with a vague error, and returns a non-zero exit code so it can gate CI.
+`metaproof` scans a [fastlane `deliver`](https://docs.fastlane.tools/actions/deliver/) `metadata/` folder and checks every localized field against Apple's App Store Connect limits and a set of ASO keyword best practices. It runs locally, catches problems per locale before an upload fails with a vague error, and returns a non-zero exit code so it can gate CI.
 
 It is the text half of a submission-preflight pair: [screenproof](https://github.com/vsolano9/screenproof) lints the screenshots the same way.
 
-- Per-locale, Unicode-correct character counting (a family emoji counts as one character, not eleven).
+- Per-locale, Unicode-correct counting: user-perceived characters for ordinary text fields and UTF-8 bytes for Apple's keyword budget.
 - Field-length checks for every App Store text field.
 - An ASO keyword-field linter: wasted separator spaces, duplicates, stop words, cross-field duplication, and unused keyword budget.
 - A `--fix` mode that applies the safe keyword cleanups (separator spaces, duplicates, empty terms) in place.
@@ -63,14 +63,14 @@ $ metaproof fastlane/metadata
     error   subtitle           Subtitle is 51/30 characters (21 over the limit)
     error   privacy_url        Privacy Policy URL is not a valid http(s) URL: "example.de/datenschutz"
     warning keywords           keyword(s) already indexed from the app name or subtitle: timer
-    info    keywords           keywords use 34/100 characters (66 unused)
+    info    keywords           keywords use 35/100 bytes (65 unused)
 ✓ default  ok
 ✓ en-US
-    warning keywords           keywords waste 6 character(s) on spaces around commas; ...
+    warning keywords           keywords waste 6 byte(s) on spaces around commas; ...
     warning keywords           duplicate keyword(s): focus
     warning keywords           low-value keyword(s): the
     warning keywords           keyword(s) already indexed from the app name or subtitle: focus, timer, pomodoro, study
-    info    keywords           keywords use 55/100 characters (45 unused)
+    info    keywords           keywords use 55/100 bytes (45 unused)
     info    description        description has 28 words (154/4000 characters)
 
 Summary: 3 errors, 5 warnings, 3 info across 3 locales — FAIL
@@ -81,18 +81,16 @@ Summary: 3 errors, 5 warnings, 3 info across 3 locales — FAIL
 ### Required fields
 
 A content linter only judges values that are there. The failure that actually
-blocks a submission is the file that is missing: a locale folder holding just
-`keywords.txt` has nothing wrong with it and is still rejected by App Store
-Connect.
+blocks a submission is the file that is missing: a locale can have valid copy
+and URLs while still being rejected because `keywords.txt` is absent.
 
 - `required-field`: a field App Store Connect requires is absent, empty, or
   whitespace-only. Error by default.
 
-The default list is App Name, Description, Support URL, and Privacy Policy URL —
-the four Apple requires before a version can be submitted. What's New and
-Keywords are left out on purpose: What's New only applies to updates, and teams
-disagree about whether an empty keywords field should fail CI. Add either through
-`required` in the config.
+The default list is App Name, Keywords, Description, Support URL, and Privacy Policy URL —
+the five localized fields Apple marks required for submission. What's New is
+left out because it applies only to updates; add it through `required` when
+linting an update-only tree.
 
 A value can be inherited. fastlane deliver falls back to `metadata/default/` for
 any locale without its own file, so a field set there satisfies every locale.
@@ -104,18 +102,18 @@ To turn the check off entirely, set `"rules": { "required-field": "off" }` or
 
 ### Field length
 
-Character limits, from Apple's App Store Connect Help. metaproof measures user-perceived characters (grapheme clusters), which is how the field length reads to a human and in the App Store Connect editor.
+Field limits come from Apple's App Store Connect Help. metaproof measures ordinary text fields in user-perceived characters (grapheme clusters) and the Keywords field in UTF-8 bytes.
 
 | Field | File | Limit |
 | --- | --- | --- |
 | App Name | `name.txt` | 30 |
 | Subtitle | `subtitle.txt` | 30 |
-| Keywords | `keywords.txt` | 100 |
+| Keywords | `keywords.txt` | 100 bytes |
 | Promotional Text | `promotional_text.txt` | 170 |
 | Description | `description.txt` | 4000 |
 | What's New | `release_notes.txt` | 4000 |
 
-Sources: [App Store Connect Help - App information](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/) and [Creating Your Product Page](https://developer.apple.com/app-store/product-page/). Apple counts characters, not bytes, and spaces and punctuation count toward the limit. Limits are overridable in config in case Apple changes them.
+Sources: [App information](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/) and [Platform version information](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/). Apple documents character limits for the ordinary text fields and a 100-byte limit for Keywords. Limits are overridable in config in case Apple changes them.
 
 URL fields (`support_url.txt`, `marketing_url.txt`, `privacy_url.txt`, `apple_tv_privacy_policy.txt`) are checked for a valid `http(s)` address.
 
@@ -123,12 +121,12 @@ URL fields (`support_url.txt`, `marketing_url.txt`, `privacy_url.txt`, `apple_tv
 
 These are widely used App Store Optimization best practices, not Apple-mandated rules. Each is a config-tunable rule:
 
-- `keyword-space-after-comma`: spaces around commas waste characters against the 100-character budget.
+- `keyword-space-after-comma`: spaces around commas waste bytes against the 100-byte budget.
 - `keyword-duplicate`: the same keyword listed twice.
 - `keyword-empty-term`: empty terms from double or trailing commas.
 - `keyword-stop-word`: low-value words (configurable list) that waste budget.
 - `keyword-cross-field-duplicate`: keywords Apple already indexes from your app name and subtitle.
-- `keyword-capacity`: how much of the 100-character budget is unused (informational).
+- `keyword-capacity`: how much of the 100-byte budget is unused (informational).
 
 ### Description
 
@@ -157,15 +155,15 @@ Non-locale folders such as `review_information/` are skipped. The `default/` fal
 
 `metaproof --fix` rewrites each locale's `keywords.txt` in place, applying only cleanups that cannot change what you meant:
 
-- removes spaces around commas (each one wastes a character of the 100-character budget),
+- removes spaces around commas (each one wastes a byte of the 100-byte budget),
 - drops empty terms left by double or trailing commas,
 - removes exact duplicate terms (case-insensitive, keeping the first occurrence and its casing).
 
 A summary of what changed goes to stderr; stdout still carries the normal report, run against the fixed tree. Judgment calls stay with you: `--fix` never removes stop words or keywords duplicated from the name/subtitle, and never truncates an over-limit field. Files that need no changes are not touched. Run it on a tree that is under version control so you can review the diff.
 
-## A note on character counting
+## A note on counting
 
-metaproof counts grapheme clusters (what a person sees as one character). `String.length` over-counts emoji and astral characters, and byte length over-counts everything non-ASCII, which is the classic trap that makes a field that "looks fine" fail on upload. For unusual emoji or combining-mark sequences, Apple's server-side count can still differ by a character or two, so treat a field that sits exactly on the limit as worth double-checking.
+For ordinary text limits, metaproof counts grapheme clusters (what a person sees as one character). `String.length` over-counts emoji and astral characters. Keywords are the exception: Apple publishes a 100-byte budget, so metaproof counts the UTF-8 bytes that the field consumes. For unusual combining-mark sequences in character-limited fields, treat a value exactly at the limit as worth double-checking.
 
 ## Configuration
 
@@ -181,7 +179,7 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
   "stopWords": ["the", "a", "app", "best", "free"],
   "locales": { "allow": null, "extra": ["en-IN"], "ignore": ["fr-CA"] },
   "description": { "minWords": 150, "maxLineLength": 80 },
-  "required": ["name", "description", "support_url", "privacy_url"]
+  "required": ["name", "keywords", "description", "support_url", "privacy_url"]
 }
 ```
 
@@ -197,13 +195,16 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
 ## GitHub Action
 
 ```yaml
-- uses: vsolano9/metaproof@v0
+- uses: vsolano9/metaproof@v0.4.0
   with:
     path: fastlane/metadata
     strict: "false"
 ```
 
-`@v0` tracks the latest `0.x` release; pin to an exact tag such as `@v0.2.0` if you prefer to opt into updates deliberately. The action sets up Node 24 and runs metaproof, so a failed check blocks the workflow. See [`action.yml`](action.yml).
+The exact tag keeps CI reproducible. The moving `@v0` tag points to the
+same `v0.4.0` release for users who prefer automatic compatible updates. The
+action sets up Node 24 and runs metaproof, so a failed check blocks the workflow.
+See [`action.yml`](action.yml).
 
 ## Programmatic API
 
@@ -222,6 +223,7 @@ process.exit(exitCode(report, false));
 ```bash
 npm run typecheck   # tsc --noEmit
 npm test            # node --test
+npm run build       # compile the published package
 ```
 
 ## Changelog

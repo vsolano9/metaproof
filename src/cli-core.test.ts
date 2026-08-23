@@ -27,6 +27,7 @@ function fakeIo(overrides: Partial<Io> = {}): Io & { out: string; err: string } 
  */
 const SUBMITTABLE: Record<string, string> = {
   "en-US/name.txt": "Focus Timer",
+  "en-US/keywords.txt": "pomodoro,focus,study",
   "en-US/description.txt": "A simple focus timer.",
   "en-US/support_url.txt": "https://example.com/support",
   "en-US/privacy_url.txt": "https://example.com/privacy",

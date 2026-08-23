@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { graphemeCount, codePointCount } from "./count.ts";
+import { graphemeCount, codePointCount, utf8ByteCount } from "./count.ts";
 
 test("graphemeCount counts plain ASCII by character", () => {
   assert.equal(graphemeCount("hello"), 5);
@@ -37,4 +37,10 @@ test("codePointCount counts astral characters as one code point each", () => {
   // Naive string.length would report 2 (surrogate pair) for the emoji.
   assert.equal(codePointCount("a👍"), 2);
   assert.equal("a👍".length, 3);
+});
+
+test("utf8ByteCount measures ASCII and multibyte text", () => {
+  assert.equal(utf8ByteCount("keyword"), 7);
+  assert.equal(utf8ByteCount("猫"), 3);
+  assert.equal(utf8ByteCount("👍"), 4);
 });

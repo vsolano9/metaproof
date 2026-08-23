@@ -10,6 +10,7 @@ import { lint } from "./lint.ts";
 function submittable(locale: string): Record<string, string> {
   return {
     [`${locale}/name.txt`]: "Focus Timer",
+    [`${locale}/keywords.txt`]: "pomodoro,focus,timer",
     [`${locale}/description.txt`]: "A simple focus timer.",
     [`${locale}/support_url.txt`]: "https://example.com/support",
     [`${locale}/privacy_url.txt`]: "https://example.com/privacy",
@@ -93,6 +94,7 @@ test("lint lets the default folder satisfy a required field for every locale", a
   const root = await makeTree({
     "default/support_url.txt": "https://example.com/support",
     "default/privacy_url.txt": "https://example.com/privacy",
+    "default/keywords.txt": "pomodoro,focus,timer",
     "en-US/name.txt": "Focus Timer",
     "en-US/description.txt": "A simple focus timer.",
     "de-DE/name.txt": "Fokus Timer",
@@ -119,7 +121,7 @@ test("lint checks the default folder when it is the only folder in the tree", as
   const report = await lint(root);
   assert.equal(report.ok, false);
   const missing = report.findings.filter((f) => f.rule === "required-field" && f.locale === "default");
-  assert.deepEqual(missing.map((f) => f.field), ["description", "support_url", "privacy_url"]);
+  assert.deepEqual(missing.map((f) => f.field), ["keywords", "description", "support_url", "privacy_url"]);
 });
 
 test("lint surfaces keyword findings and counts severities consistently", async () => {

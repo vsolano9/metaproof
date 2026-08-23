@@ -2,17 +2,18 @@
  * App Store metadata field definitions.
  *
  * Filenames follow the fastlane deliver `metadata/<locale>/` convention. Limits
- * are Apple's documented App Store Connect character limits (re-verify against
+ * are Apple's documented App Store Connect limits (re-verify against
  * Apple's current App Store Connect Help if they change; they are overridable
  * through the metaproof config file).
  *
  * Apple App Store Connect Help - App information reference:
  * https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/
+ * https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/
  */
 
 import type { FieldDef, FieldId, FieldLimits } from "./types.ts";
 
-/** Apple's documented character limits for the length-limited text fields. */
+/** Apple's documented limits. Keywords use bytes; the other fields use characters. */
 export const DEFAULT_LIMITS: FieldLimits = {
   name: 30,
   subtitle: 30,
@@ -55,7 +56,7 @@ export function urlFields(): FieldDef[] {
   return FIELD_DEFS.filter((def) => def.kind === "url");
 }
 
-/** Field ids that carry a character limit, matching {@link FieldLimits}. */
+/** Field ids that carry a text limit, matching {@link FieldLimits}. */
 export const LENGTH_FIELD_IDS: readonly FieldId[] = lengthFields().map((f) => f.id);
 
 /** Every field id metaproof knows, for validating user-supplied field lists. */

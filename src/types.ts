@@ -23,7 +23,7 @@ export type FieldId =
   | "privacy_url"
   | "apple_tv_privacy_policy";
 
-/** Length fields carry a character limit; url fields are format-checked. */
+/** Length fields carry a text limit; URL fields are format-checked. */
 export type FieldKind = "length" | "url";
 
 export interface FieldDef {
@@ -90,7 +90,7 @@ export interface LintReport {
   ok: boolean;
 }
 
-/** Character limits, overridable via config in case Apple changes them. */
+/** Text limits, overridable via config in case Apple changes them. Keywords use bytes. */
 export type FieldLimits = Record<
   "name" | "subtitle" | "keywords" | "promotional_text" | "description" | "release_notes",
   number

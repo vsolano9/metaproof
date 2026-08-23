@@ -2,7 +2,7 @@
  * Configuration: built-in defaults plus a validated merge of a user config file.
  *
  * A project can drop a `metaproof.json` next to its metadata and override
- * character limits (in case Apple changes them), rule severities (including
+ * field limits (in case Apple changes them), rule severities (including
  * turning rules `off`), the ASO stop-word list, and the locale allow/ignore
  * lists. Unknown top-level keys are ignored for forward compatibility, but
  * malformed values are rejected with a clear error.
@@ -56,12 +56,11 @@ const DEFAULT_DESCRIPTION: Readonly<Config["description"]> = {
 };
 
 /**
- * Fields App Store Connect requires before a version can be submitted. Keywords
- * and What's New are deliberately absent: What's New only applies to updates,
- * and teams disagree about whether an empty keywords field should block CI. Add
- * either through `required` in the config file.
+ * Localized fields App Store Connect requires before a version can be
+ * submitted. What's New is deliberately absent because it only applies to
+ * updates; add it through `required` when linting an update-only tree.
  */
-const DEFAULT_REQUIRED: readonly FieldId[] = ["name", "description", "support_url", "privacy_url"];
+const DEFAULT_REQUIRED: readonly FieldId[] = ["name", "keywords", "description", "support_url", "privacy_url"];
 
 /** A fresh default configuration. */
 export function defaultConfig(): Config {

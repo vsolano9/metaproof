@@ -1,13 +1,12 @@
 /**
- * Field-content validation: character limits, URL format, and stray whitespace.
+ * Field-content validation: text limits, URL format, and stray whitespace.
  *
  * Pure over a single already-scanned locale. Only fields that are present are
- * checked (metaproof does not require optional fields to exist). Length is
- * measured with grapheme-cluster counting so emoji and combining marks count
- * the way a human sees them.
+ * checked (metaproof does not require optional fields to exist). Text fields
+ * use grapheme-cluster counting; Apple's keywords limit uses UTF-8 bytes.
  */
 
-import { graphemeCount } from "./count.ts";
+import { graphemeCount, utf8ByteCount } from "./count.ts";
 import { FIELD_DEFS } from "./fields.ts";
 import type { Config, Finding, LocaleScan, RuleLevel, Severity } from "./types.ts";
 
@@ -42,14 +41,16 @@ export function validateLocale(scan: LocaleScan, config: Config): Finding[] {
       const level = severity(config, "field-length", "error");
       if (level) {
         const limit = config.limits[def.id as keyof Config["limits"]];
-        const count = graphemeCount(value);
+        const usesBytes = def.id === "keywords";
+        const count = usesBytes ? utf8ByteCount(value) : graphemeCount(value);
         if (count > limit) {
+          const unit = usesBytes ? "bytes" : "characters";
           findings.push({
             locale,
             field: def.id,
             rule: "field-length",
             severity: level,
-            message: `${def.label} is ${count}/${limit} characters (${count - limit} over the limit)`,
+            message: `${def.label} is ${count}/${limit} ${unit} (${count - limit} over the limit)`,
             count,
             limit,
           });

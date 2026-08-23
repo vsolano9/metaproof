@@ -4,13 +4,13 @@
  *
  * Every other rule in metaproof judges a value that is already there. This one
  * judges absence, which is the failure that actually blocks a submission: a
- * locale folder holding only `keywords.txt` is silently "clean" to a
+ * locale folder holding only an app name is silently "clean" to a
  * content-only linter and rejected by App Store Connect.
  *
- * The default list is the four fields Apple documents as required for an App
- * Store submission: App Name, Description, Support URL, and Privacy Policy URL.
- * It is a config list (`required`), not a hard-coded one, because teams localise
- * differently and Apple's requirements change.
+ * The default list is the five localized fields Apple documents as required for
+ * an App Store submission: App Name, Keywords, Description, Support URL, and
+ * Privacy Policy URL. It is a config list (`required`), not a hard-coded one,
+ * because teams localize differently and Apple's requirements change.
  *
  * A value can be inherited: fastlane deliver falls back to `metadata/default/`
  * for any locale that does not carry its own file, so a field satisfied there
@@ -58,12 +58,13 @@ export function lintRequired(
     if (isPresent(own) || isPresent(inherited[def.id])) continue;
 
     const reason = own === undefined ? `missing (no ${def.filename})` : `empty`;
+    const verb = def.id === "keywords" ? "are" : "is";
     findings.push({
       locale: scan.locale,
       field: def.id,
       rule: "required-field",
       severity: level,
-      message: `${def.label} is required for App Store submission but is ${reason}`,
+      message: `${def.label} ${verb} required for App Store submission but ${verb} ${reason}`,
     });
   }
 

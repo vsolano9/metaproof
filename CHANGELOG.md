@@ -6,6 +6,28 @@ All notable changes to metaproof are recorded here. The format follows
 `0.x`, a new check that can fail a previously clean run ships in a minor
 release, and every such change is called out below.
 
+## [0.4.0] - 2026-08-23
+
+### Fixed
+
+- Keywords now use Apple's documented 100-byte budget. metaproof measures the
+  field in UTF-8 bytes, so non-ASCII metadata can no longer pass locally while
+  exceeding App Store Connect's limit.
+- Keywords are now part of the default `required-field` list, matching Apple's
+  current requirement for localized platform-version metadata.
+- `--fix` reports bytes reclaimed from the keyword budget. Its public result
+  retains `charsSaved` for compatibility and adds `bytesSaved` for the enforced
+  budget.
+
+### Changed
+
+- **A tree that passed 0.3.0 can fail 0.4.0.** A missing `keywords.txt` is now an
+  error, and a non-ASCII keyword field over 100 UTF-8 bytes is over limit even
+  when it contains fewer than 100 user-perceived characters. Override
+  `required` only when a deliberate workflow supplies Keywords elsewhere.
+- The GitHub Action example pins the exact v0.4.0 release, and hosted repository
+  CI was removed so project validation remains local-only.
+
 ## [0.3.0] - 2026-08-06
 
 ### Added
@@ -66,6 +88,7 @@ Superseded by 0.3.0, which carries this fix.
   programmatic `lint()` API, and a GitHub Action. Zero dependencies, fully
   offline.
 
+[0.4.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.4.0
 [0.3.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.3.0
 [0.2.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.2.0
 [0.1.0]: https://www.npmjs.com/package/metaproof/v/0.1.0

@@ -1,14 +1,14 @@
 /**
  * ASO keyword-field linter.
  *
- * The App Store keywords field is a comma-separated, 100-character budget that
+ * The App Store keywords field is a comma-separated, 100-byte budget that
  * feeds search indexing. These rules encode widely-accepted ASO best practices
- * (they are defaults, not Apple-mandated behaviour): don't waste characters on
+ * (they are defaults, not Apple-mandated behaviour): don't waste bytes on
  * spaces, duplicates, stop words, or words Apple already indexes from the app
- * name and subtitle, and surface how much of the 100-character budget is unused.
+ * name and subtitle, and surface how much of the 100-byte budget is unused.
  */
 
-import { graphemeCount } from "./count.ts";
+import { utf8ByteCount } from "./count.ts";
 import type { Config, Finding, LocaleScan, RuleLevel, Severity } from "./types.ts";
 
 function severity(config: Config, rule: string, fallback: Severity): Severity | null {
@@ -43,7 +43,7 @@ export function lintKeywords(scan: LocaleScan, config: Config): Finding[] {
   const terms = rawTerms.map((t) => t.trim()).filter((t) => t.length > 0);
   const lowerTerms = terms.map((t) => t.toLowerCase());
 
-  // Space around commas wastes characters against the 100-char budget.
+  // ASCII spaces around commas each waste one byte against the 100-byte budget.
   let wastedSpaces = 0;
   for (let i = 0; i < raw.length; i++) {
     if (raw[i] !== ",") continue;
@@ -54,7 +54,7 @@ export function lintKeywords(scan: LocaleScan, config: Config): Finding[] {
     push(
       "keyword-space-after-comma",
       "warning",
-      `keywords waste ${wastedSpaces} character(s) on spaces around commas; Apple ignores them but they count toward the ${config.limits.keywords}-character limit`,
+      `keywords waste ${wastedSpaces} byte(s) on spaces around commas; Apple ignores them but they count toward the ${config.limits.keywords}-byte limit`,
     );
   }
 
@@ -103,12 +103,12 @@ export function lintKeywords(scan: LocaleScan, config: Config): Finding[] {
 
   // Unused capacity, informational.
   const limit = config.limits.keywords;
-  const count = graphemeCount(raw);
+  const count = utf8ByteCount(raw);
   if (count <= limit) {
     push(
       "keyword-capacity",
       "info",
-      `keywords use ${count}/${limit} characters (${limit - count} unused)`,
+      `keywords use ${count}/${limit} bytes (${limit - count} unused)`,
       { count, limit },
     );
   }

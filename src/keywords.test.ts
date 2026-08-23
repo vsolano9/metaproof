@@ -65,6 +65,14 @@ test("lintKeywords reports unused keyword capacity as info", () => {
   assert.equal(f.limit, 100);
 });
 
+test("lintKeywords reports keyword capacity in UTF-8 bytes", () => {
+  const findings = lintKeywords(scanOf({ keywords: "猫".repeat(10) }), defaultConfig());
+  const finding = findings.find((x) => x.rule === "keyword-capacity");
+  assert.ok(finding);
+  assert.equal(finding.count, 30);
+  assert.match(finding.message, /30\/100 bytes/);
+});
+
 test("lintKeywords respects a rule turned off in config", () => {
   const cfg = defaultConfig();
   cfg.rules["keyword-space-after-comma"] = "off";

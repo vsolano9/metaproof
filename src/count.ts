@@ -1,7 +1,9 @@
 /**
  * Unicode-aware character counting.
  *
- * App Store Connect counts "characters", not bytes and not UTF-16 code units.
+ * Most App Store Connect text limits count characters, not bytes or UTF-16 code
+ * units. The keywords field is the documented exception: Apple caps it at 100
+ * UTF-8 bytes.
  * `String.prototype.length` (UTF-16 code units) over-counts astral characters
  * such as emoji, and byte length over-counts everything non-ASCII. metaproof
  * counts user-perceived characters (grapheme clusters) as its canonical measure
@@ -23,4 +25,9 @@ export function codePointCount(value: string): number {
   let count = 0;
   for (const _cp of value) count++;
   return count;
+}
+
+/** Count the bytes used by a string when App Store Connect receives it as UTF-8. */
+export function utf8ByteCount(value: string): number {
+  return new TextEncoder().encode(value).byteLength;
 }

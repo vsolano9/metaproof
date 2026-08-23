@@ -76,8 +76,8 @@ test("mergeConfig rejects malformed description settings", () => {
   assert.throws(() => mergeConfig(defaultConfig(), { description: { maxLineLength: 1.5 } }));
 });
 
-test("defaultConfig requires the four fields App Store Connect will not submit without", () => {
-  assert.deepEqual(defaultConfig().required, ["name", "description", "support_url", "privacy_url"]);
+test("defaultConfig requires every localized field App Store Connect marks required", () => {
+  assert.deepEqual(defaultConfig().required, ["name", "keywords", "description", "support_url", "privacy_url"]);
 });
 
 test("mergeConfig replaces the required list and drops duplicates", () => {
@@ -98,8 +98,8 @@ test("mergeConfig rejects an unknown or malformed required field", () => {
 test("mergeConfig does not alias the required list back to the base config", () => {
   const base = defaultConfig();
   const merged = mergeConfig(base, {});
-  merged.required.push("keywords");
-  assert.equal(base.required.includes("keywords"), false);
+  merged.required.push("subtitle");
+  assert.equal(base.required.includes("subtitle"), false);
 });
 
 test("mergeConfig rejects a non-object input", () => {

@@ -48,7 +48,7 @@ test("renderHuman shows PASS for a clean report", () => {
 });
 
 test("renderHuman quiet mode hides clean locales and info findings", () => {
-  const info: Finding = { locale: "de-DE", field: "keywords", rule: "keyword-capacity", severity: "info", message: "keywords use 7/100 characters (93 unused)" };
+  const info: Finding = { locale: "de-DE", field: "keywords", rule: "keyword-capacity", severity: "info", message: "keywords use 7/100 bytes (93 unused)" };
   const report = reportOf([
     { locale: "en-US", findings: [errFinding], ok: false },
     { locale: "de-DE", findings: [info], ok: true },
@@ -78,7 +78,7 @@ test("exitCode is 0 for warnings unless strict", () => {
 });
 
 test("exitCode ignores info findings even in strict mode", () => {
-  const info: Finding = { locale: "en-US", field: "keywords", rule: "keyword-capacity", severity: "info", message: "keywords use 7/100 characters (93 unused)" };
+  const info: Finding = { locale: "en-US", field: "keywords", rule: "keyword-capacity", severity: "info", message: "keywords use 7/100 bytes (93 unused)" };
   const report = reportOf([{ locale: "en-US", findings: [info], ok: true }]);
   assert.equal(exitCode(report, true), 0);
 });

@@ -14,7 +14,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { defaultConfig } from "./config.ts";
-import { graphemeCount } from "./count.ts";
+import { graphemeCount, utf8ByteCount } from "./count.ts";
 import { scanMetadata } from "./scan.ts";
 import type { Config } from "./types.ts";
 
@@ -25,8 +25,10 @@ export interface KeywordFix {
   after: string;
   /** True when `after` differs from `before`. */
   changed: boolean;
-  /** Characters reclaimed against the keyword budget (grapheme-measured). */
+  /** User-perceived characters removed. Retained for API compatibility. */
   charsSaved: number;
+  /** UTF-8 bytes reclaimed against Apple's keyword budget. */
+  bytesSaved?: number;
   /** Number of empty terms removed (from double or trailing commas). */
   droppedEmptyTerms: number;
   /** Duplicate terms removed, in their original casing (first occurrence kept). */
@@ -73,6 +75,7 @@ export function fixKeywords(raw: string): KeywordFix {
     after,
     changed: after !== raw,
     charsSaved: graphemeCount(raw) - graphemeCount(after),
+    bytesSaved: utf8ByteCount(raw) - utf8ByteCount(after),
     droppedEmptyTerms,
     removedDuplicates,
   };
@@ -114,7 +117,8 @@ export function renderFixSummary(result: FixResult): string {
 
   const lines: string[] = [];
   for (const { locale, filename, fix } of result.applied) {
-    const parts: string[] = [`reclaimed ${fix.charsSaved} character${fix.charsSaved === 1 ? "" : "s"}`];
+    const bytesSaved = fix.bytesSaved ?? utf8ByteCount(fix.before) - utf8ByteCount(fix.after);
+    const parts: string[] = [`reclaimed ${bytesSaved} byte${bytesSaved === 1 ? "" : "s"}`];
     if (fix.removedDuplicates.length > 0) {
       parts.push(`removed ${fix.removedDuplicates.length} duplicate(s): ${fix.removedDuplicates.join(", ")}`);
     }

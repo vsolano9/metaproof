@@ -33,9 +33,25 @@ test("validateLocale counts by grapheme, not UTF-16 length", () => {
   assert.equal(f?.count, 31);
 });
 
-test("validateLocale flags keywords over 100 characters", () => {
+test("validateLocale flags keywords over 100 ASCII bytes", () => {
   const findings = validateLocale(scanOf({ keywords: "k".repeat(101) }), defaultConfig());
   assert.ok(findings.some((x) => x.rule === "field-length" && x.field === "keywords"));
+});
+
+test("validateLocale accepts keywords at exactly 100 UTF-8 bytes", () => {
+  const findings = validateLocale(
+    scanOf({ keywords: "猫".repeat(33) + "a" }),
+    defaultConfig(),
+  );
+  assert.equal(findings.some((x) => x.rule === "field-length"), false);
+});
+
+test("validateLocale measures the keyword limit in UTF-8 bytes", () => {
+  const findings = validateLocale(scanOf({ keywords: "猫".repeat(34) }), defaultConfig());
+  const finding = findings.find((x) => x.rule === "field-length" && x.field === "keywords");
+  assert.ok(finding);
+  assert.equal(finding.count, 102);
+  assert.match(finding.message, /102\/100 bytes/);
 });
 
 test("validateLocale flags a malformed URL field", () => {

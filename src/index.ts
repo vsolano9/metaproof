@@ -18,7 +18,7 @@ export { fixKeywords, fixMetadata, renderFixSummary } from "./fix.ts";
 export { defaultConfig, loadConfig, mergeConfig } from "./config.ts";
 export { renderHuman, renderJson, exitCode } from "./report.ts";
 export { DEFAULT_LIMITS, FIELD_DEFS, fieldForFilename, lengthFields, urlFields } from "./fields.ts";
-export { graphemeCount, codePointCount } from "./count.ts";
+export { graphemeCount, codePointCount, utf8ByteCount } from "./count.ts";
 export { KNOWN_LOCALES, NON_LOCALE_FOLDERS, isKnownLocale } from "./locales.ts";
 
 export type {

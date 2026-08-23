@@ -22,6 +22,7 @@ test("fixKeywords leaves an already-clean field unchanged", () => {
   assert.equal(fix.changed, false);
   assert.equal(fix.after, "photo,editor,camera");
   assert.equal(fix.charsSaved, 0);
+  assert.equal(fix.bytesSaved, 0);
 });
 
 test("fixKeywords removes spaces around commas but keeps phrase spaces", () => {
@@ -49,6 +50,13 @@ test("fixKeywords combines all safe cleanups and reports characters saved", () =
   assert.equal(fix.droppedEmptyTerms, 1);
   assert.deepEqual(fix.removedDuplicates, ["photo"]);
   assert.equal(fix.charsSaved, "photo, editor, photo, , camera".length - "photo,editor,camera".length);
+  assert.equal(fix.bytesSaved, fix.charsSaved);
+});
+
+test("fixKeywords reports UTF-8 bytes reclaimed independently of graphemes", () => {
+  const fix = fixKeywords("猫, 猫");
+  assert.equal(fix.charsSaved, 3);
+  assert.equal(fix.bytesSaved, 5);
 });
 
 test("fixKeywords trims leading and trailing whitespace on the field", () => {
@@ -92,13 +100,25 @@ test("renderFixSummary describes a no-op and applied fixes", () => {
       {
         locale: "en-US",
         filename: "keywords.txt",
-        fix: { before: "a, a,", after: "a", changed: true, charsSaved: 4, droppedEmptyTerms: 1, removedDuplicates: ["a"] },
+        fix: { before: "a, a,", after: "a", changed: true, charsSaved: 4, bytesSaved: 4, droppedEmptyTerms: 1, removedDuplicates: ["a"] },
       },
     ],
   });
   assert.match(summary, /en-US\/keywords\.txt/);
-  assert.match(summary, /reclaimed 4 characters/);
+  assert.match(summary, /reclaimed 4 bytes/);
   assert.match(summary, /removed 1 duplicate/);
   assert.match(summary, /dropped 1 empty term/);
   assert.match(summary, /fixed 1 file/);
+
+  const legacySummary = renderFixSummary({
+    root: "/x",
+    applied: [
+      {
+        locale: "ja",
+        filename: "keywords.txt",
+        fix: { before: "猫, 猫", after: "猫", changed: true, charsSaved: 3, droppedEmptyTerms: 0, removedDuplicates: ["猫"] },
+      },
+    ],
+  });
+  assert.match(legacySummary, /reclaimed 5 bytes/);
 });

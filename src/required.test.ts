@@ -11,6 +11,7 @@ function scanOf(fields: LocaleScan["fields"], locale = "en-US"): LocaleScan {
 
 const COMPLETE: LocaleScan["fields"] = {
   name: "Focus Timer",
+  keywords: "timer,focus",
   description: "A simple focus timer.",
   support_url: "https://example.com/support",
   privacy_url: "https://example.com/privacy",
@@ -28,6 +29,15 @@ test("lintRequired reports every missing required field", () => {
 
 test("lintRequired passes a locale that has every required field", () => {
   assert.deepEqual(lintRequired(scanOf(COMPLETE), defaultConfig()), []);
+});
+
+test("lintRequired reports a missing keywords field by default", () => {
+  const findings = lintRequired(
+    scanOf({ ...COMPLETE, keywords: undefined }),
+    defaultConfig(),
+  );
+  assert.deepEqual(findings.map((finding) => finding.field), ["keywords"]);
+  assert.match(findings[0]!.message, /Keywords are required/);
 });
 
 test("lintRequired treats an empty required file as missing, and says so", () => {
@@ -49,7 +59,7 @@ test("lintRequired treats whitespace-only values as missing", () => {
 
 test("lintRequired accepts a value inherited from the default folder", () => {
   const findings = lintRequired(
-    scanOf({ name: "Focus Timer", description: "A simple focus timer." }),
+    scanOf({ name: "Focus Timer", keywords: "timer,focus", description: "A simple focus timer." }),
     defaultConfig(),
     { support_url: "https://example.com/support", privacy_url: "https://example.com/privacy" },
   );
@@ -73,7 +83,7 @@ test("lintRequired reports fields in the stable report order, not config order",
 test("lintRequired honours a custom required list", () => {
   const config = defaultConfig();
   config.required = ["keywords"] as FieldId[];
-  const findings = lintRequired(scanOf(COMPLETE), config);
+  const findings = lintRequired(scanOf({ ...COMPLETE, keywords: undefined }), config);
   assert.deepEqual(findings.map((f) => f.field), ["keywords"]);
 });
 
