@@ -6,6 +6,14 @@ All notable changes to metaproof are recorded here. The format follows
 `0.x`, a new check that can fail a previously clean run ships in a minor
 release, and every such change is called out below.
 
+## [0.5.1] - 2026-08-24
+
+### Changed
+
+- `homepage` now points at https://thechosenvictor.com/open-source, which
+  documents this package, rather than back at this README. No behaviour change.
+- Added a Maintainer section to the README.
+
 ## [0.5.0] - 2026-08-23
 
 ### Fixed
@@ -104,6 +112,7 @@ Superseded by 0.3.0, which carries this fix.
   programmatic `lint()` API, and a GitHub Action. Zero dependencies, fully
   offline.
 
+[0.5.1]: https://github.com/vsolano9/metaproof/releases/tag/v0.5.1
 [0.5.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.5.0
 [0.4.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.4.0
 [0.3.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.3.0

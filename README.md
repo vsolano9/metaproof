@@ -195,14 +195,14 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
 ## GitHub Action
 
 ```yaml
-- uses: vsolano9/metaproof@v0.5.0
+- uses: vsolano9/metaproof@v0.5.1
   with:
     path: fastlane/metadata
     strict: "false"
 ```
 
 The exact tag keeps CI reproducible. The moving `@v0` tag points to the
-same `v0.5.0` release for users who prefer automatic compatible updates. The
+same `v0.5.1` release for users who prefer automatic compatible updates. The
 action sets up Node 24 and runs metaproof, so a failed check blocks the workflow.
 See [`action.yml`](action.yml).
 
@@ -241,6 +241,10 @@ Release history, including which changes can fail a previously clean run, is in
 ## Contributing
 
 Issues and pull requests are welcome. Keep the tool dependency-free, add a failing test before a change, and run `npm run lint` (typecheck plus tests) before opening a PR.
+
+## Maintainer
+
+`metaproof` and its screenshot sibling [screenproof](https://github.com/vsolano9/screenproof) are built and maintained by [Victor Solano](https://thechosenvictor.com/open-source), who runs them against twelve App Store apps before every submission.
 
 ## License
 
