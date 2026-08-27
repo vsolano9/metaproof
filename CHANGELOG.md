@@ -6,6 +6,35 @@ All notable changes to metaproof are recorded here. The format follows
 `0.x`, a new check that can fail a previously clean run ships in a minor
 release, and every such change is called out below.
 
+## [0.6.0] - 2026-08-27
+
+### Fixed
+
+- An unknown rule id under `rules` is now a config error instead of a setting
+  that is accepted and never applied. `{"rules": {"keyword-stopword": "off"}}`
+  used to load without complaint and leave `keyword-stop-word` switched on, so a
+  single mistyped hyphen produced a config that looked applied and did nothing.
+  The message names the bad id and suggests the real one when it is an obvious
+  near miss. `required` already rejected unknown field names; `rules` now
+  matches it.
+
+### Changed
+
+- **A config that loaded under 0.5.x can now exit 2.** That is the point: the
+  configs that start failing are the ones that were never doing anything. Run
+  metaproof once after upgrading and fix any id it names.
+- `missing-metadata` and `missing-locale` are documented and enforced as
+  structural rules that cannot be configured at any level. Both report that
+  metaproof validated nothing — the folder was absent, or it held no locale —
+  so silencing one would turn a scan that read no metadata into a clean,
+  zero-finding, exit-0 report. Neither was ever configurable in practice:
+  `missing-locale` was missing from the rule table entirely and both hardcoded
+  `error` in the scanner, so a config setting them was silently ignored. They
+  are now rejected with a reason instead.
+- `defaultConfig().rules` no longer contains a `missing-metadata` key, because
+  its presence implied a setting that the scanner never read. Programmatic
+  consumers enumerating that object will see one fewer key.
+
 ## [0.5.2] - 2026-08-27
 
 ### Fixed

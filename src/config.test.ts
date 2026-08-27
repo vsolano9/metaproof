@@ -127,3 +127,75 @@ test("loadConfig rejects malformed JSON mentioning the file", async () => {
   await writeFile(file, "{ not json", "utf8");
   await assert.rejects(loadConfig(file), (err: Error) => err.message.includes("bad.json"));
 });
+
+// --- Rule-id validation -----------------------------------------------------
+// A rule id that metaproof does not know used to be written into the config and
+// then never consulted, so a typo silently produced a config that did nothing.
+// `required` already rejected unknown field names; `rules` now matches it.
+
+test("mergeConfig rejects an unknown rule id and names it", () => {
+  assert.throws(
+    () => mergeConfig(defaultConfig(), { rules: { "keyword-stopwrd": "off" } }),
+    /unknown rule "keyword-stopwrd"/,
+  );
+});
+
+test("mergeConfig suggests the real rule id for an obvious near miss", () => {
+  assert.throws(
+    () => mergeConfig(defaultConfig(), { rules: { "keyword-stopword": "off" } }),
+    /did you mean "keyword-stop-word"\?/,
+  );
+  assert.throws(
+    () => mergeConfig(defaultConfig(), { rules: { field_length: "off" } }),
+    /did you mean "field-length"\?/,
+  );
+});
+
+test("mergeConfig does not invent a suggestion for a rule id nothing resembles", () => {
+  assert.throws(
+    () => mergeConfig(defaultConfig(), { rules: { "wildly-unrelated-nonsense": "off" } }),
+    (err: Error) => /unknown rule "wildly-unrelated-nonsense"/.test(err.message) && !/did you mean/.test(err.message),
+  );
+});
+
+test("mergeConfig still accepts every rule id metaproof actually ships", () => {
+  const base = defaultConfig();
+  for (const rule of Object.keys(base.rules)) {
+    const cfg = mergeConfig(base, { rules: { [rule]: "off" } });
+    assert.equal(cfg.rules[rule], "off", `${rule} should be configurable`);
+  }
+});
+
+// --- Structural rules are deliberately not configurable ----------------------
+// `missing-metadata` and `missing-locale` fire when the scan validated nothing
+// at all. Allowing `off` would turn "I could not look" into a clean report,
+// which is the exact failure the zero-locale check was added to prevent, so
+// they are rejected loudly instead of being accepted and ignored.
+
+test("the structural rules are absent from the configurable rule table", () => {
+  const rules = defaultConfig().rules;
+  assert.equal("missing-metadata" in rules, false);
+  assert.equal("missing-locale" in rules, false);
+});
+
+test("mergeConfig rejects configuring a structural rule with a reason", () => {
+  for (const rule of ["missing-metadata", "missing-locale"]) {
+    assert.throws(
+      () => mergeConfig(defaultConfig(), { rules: { [rule]: "off" } }),
+      (err: Error) =>
+        err.message.includes(`config.rules.${rule}`) &&
+        /cannot be configured/.test(err.message) &&
+        !/unknown rule/.test(err.message),
+      `${rule} should be rejected as structural, not as unknown`,
+    );
+  }
+});
+
+test("a structural rule is rejected at any level, not just off", () => {
+  for (const level of ["off", "warning", "info", "error"]) {
+    assert.throws(
+      () => mergeConfig(defaultConfig(), { rules: { "missing-locale": level } }),
+      /cannot be configured/,
+    );
+  }
+});

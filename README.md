@@ -140,10 +140,18 @@ Word counting splits on whitespace, so it is most meaningful for space-separated
 
 ### Structure
 
+Two rules report that metaproof validated nothing at all. Both are always
+errors, and neither can be set through `rules` — see
+[Rules that cannot be turned off](#rules-that-cannot-be-turned-off).
+
+- `missing-metadata`: the metadata folder does not exist at the path given.
 - `missing-locale`: the metadata root exists but contains no scannable App Store
-  locale or `default/` folder. This is an error because a zero-locale scan did
-  not validate any localized metadata. Filtering every locale through
-  `locales.allow` or `locales.ignore` produces the same error.
+  locale or `default/` folder. A zero-locale scan did not validate any localized
+  metadata. Filtering every locale through `locales.allow` or `locales.ignore`
+  produces the same error.
+
+The rest describe something metaproof did read, and are configurable as usual:
+
 - `unknown-locale`: a metadata subfolder that is not a known App Store locale.
 - `unknown-file`: an unrecognized `.txt` file inside a locale folder.
 - `empty-field`: a recognized field file with no content.
@@ -184,7 +192,10 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
 ```
 
 - `limits`: override any field limit (positive integers).
-- `rules`: set a rule to `error`, `warning`, `info`, or `off`.
+- `rules`: set a rule to `error`, `warning`, `info`, or `off`. The rule id must
+  be one metaproof ships; an unknown id is a config error rather than a setting
+  that is accepted and never applied, and an obvious near miss is corrected in
+  the message (`keyword-stopword` suggests `keyword-stop-word`).
 - `stopWords`: replace the default keyword stop-word list.
 - `locales.allow`: when set, only these locale folders are linted. `extra`: additional valid locale codes. `ignore`: locale folders to skip.
 - `description.minWords` / `description.maxLineLength`: opt-in description thresholds; `0` (the default) disables a threshold.
@@ -192,17 +203,30 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
   include the defaults you still want. Any field name from the table above is
   valid; an unknown one is a config error. `[]` disables the check.
 
+### Rules that cannot be turned off
+
+`missing-metadata` and `missing-locale` are not accepted in `rules` at any
+level. Every other rule judges a value metaproof actually read, so turning it
+off narrows the report to the problems you still want to hear about. These two
+report that there was nothing to read: the folder was not there, or it held no
+locale. Silencing one would turn "metaproof could not look" into a clean,
+zero-finding, exit-0 report — the failure the zero-locale check exists to
+prevent. Setting either is a config error that says so.
+
+If a tree legitimately has no locales, point metaproof at the right path or fix
+`locales.allow` / `locales.ignore`, rather than silencing the check.
+
 ## GitHub Action
 
 ```yaml
-- uses: vsolano9/metaproof@v0.5.2
+- uses: vsolano9/metaproof@v0.6.0
   with:
     path: fastlane/metadata
     strict: "false"
 ```
 
 The exact tag keeps CI reproducible. The moving `@v0` tag points to the
-same `v0.5.2` release for users who prefer automatic compatible updates. The
+same `v0.6.0` release for users who prefer automatic compatible updates. The
 action sets up Node 24 and runs metaproof, so a failed check blocks the workflow.
 See [`action.yml`](action.yml).
 

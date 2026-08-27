@@ -17,7 +17,6 @@ const RULE_LEVELS: ReadonlySet<string> = new Set(["error", "warning", "info", "o
 
 /** Default rule severities. Keys are stable rule ids used across the linter. */
 const DEFAULT_RULES: Readonly<Record<string, RuleLevel>> = {
-  "missing-metadata": "error",
   "field-length": "error",
   "field-min-length": "error",
   "url-format": "error",
@@ -36,6 +35,51 @@ const DEFAULT_RULES: Readonly<Record<string, RuleLevel>> = {
   "description-min-words": "warning",
   "description-line-length": "warning",
 };
+
+/**
+ * Rules that report that the scan validated nothing at all: the metadata folder
+ * was not there, or it held no locale to lint.
+ *
+ * These are deliberately not configurable. Every other rule judges a value that
+ * was actually read, so turning it off narrows the report to what you still care
+ * about. Turning one of these off instead turns "metaproof could not look" into
+ * a clean, zero-finding, exit-0 report, which is the precise failure the
+ * zero-locale check was added to prevent. They are rejected with a reason rather
+ * than accepted and quietly ignored.
+ */
+export const STRUCTURAL_RULES: ReadonlySet<string> = new Set(["missing-metadata", "missing-locale"]);
+
+/** Levenshtein distance, bounded by the shorter of the two rule ids. */
+function editDistance(a: string, b: string): number {
+  let previous = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const current = [i];
+    for (let j = 1; j <= b.length; j++) {
+      const substitution = previous[j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1);
+      current[j] = Math.min(current[j - 1]! + 1, previous[j]! + 1, substitution);
+    }
+    previous = current;
+  }
+  return previous[b.length]!;
+}
+
+/**
+ * The known rule a mistyped id most likely meant, or null when nothing is close
+ * enough to be worth guessing. A hyphen dropped from `keyword-stop-word` or an
+ * underscore typed for a hyphen is one edit away; unrelated text is not.
+ */
+function nearestRule(id: string, known: Iterable<string>): string | null {
+  let best: string | null = null;
+  let bestDistance = Infinity;
+  for (const candidate of known) {
+    const distance = editDistance(id, candidate);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = candidate;
+    }
+  }
+  return best !== null && bestDistance <= 3 && bestDistance < id.length ? best : null;
+}
 
 /**
  * Default ASO keyword stop words: low-value terms that waste keyword-field
@@ -108,6 +152,21 @@ export function mergeConfig(base: Config, input: unknown): Config {
   if ("rules" in input) {
     if (!isPlainObject(input.rules)) throw new Error("config.rules must be an object");
     for (const [key, value] of Object.entries(input.rules)) {
+      // Reject an id metaproof will never read. Writing it through and ignoring
+      // it produced a config that looked applied and did nothing.
+      if (STRUCTURAL_RULES.has(key)) {
+        throw new Error(
+          `config.rules.${key} cannot be configured: it reports that metaproof validated nothing, ` +
+            `so silencing or downgrading it would turn a scan that read no metadata into a clean report`,
+        );
+      }
+      if (!(key in merged.rules)) {
+        const suggestion = nearestRule(key, Object.keys(merged.rules));
+        throw new Error(
+          `config.rules contains unknown rule "${key}"` +
+            (suggestion === null ? "" : ` (did you mean "${suggestion}"?)`),
+        );
+      }
       if (typeof value !== "string" || !RULE_LEVELS.has(value)) {
         throw new Error(`config.rules.${key} must be one of error, warning, info, off`);
       }

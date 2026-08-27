@@ -14,6 +14,12 @@ import { fieldForFilename } from "./fields.ts";
 import { isKnownLocale, NON_LOCALE_FOLDERS } from "./locales.ts";
 import type { Config, Finding, LocaleScan, ScanResult, Severity } from "./types.ts";
 
+// `missing-metadata` and `missing-locale` below are emitted at a fixed `error`
+// severity and never consult `config.rules`. That is deliberate, not an
+// oversight: they report that the scan validated nothing, so a config that could
+// silence them would turn "could not look" into a clean run. `STRUCTURAL_RULES`
+// in config.ts rejects any attempt to configure them.
+
 function levelFor(config: Config, rule: string, fallback: Severity): Severity {
   // Callers gate on `off` before calling; return the configured severity or the fallback.
   const level = config.rules[rule];
