@@ -25,6 +25,40 @@ function words(text: string): string[] {
     .filter((w) => w.length > 0);
 }
 
+/** Matches every code point `String.prototype.trim` treats as whitespace. */
+const WHITESPACE = /\s/u;
+
+/**
+ * UTF-8 bytes spent on whitespace that sits immediately beside a comma
+ * separator.
+ *
+ * Apple ignores that whitespace when it indexes the field, but every byte of it
+ * is still charged against the 100-byte budget, so the number reported has to be
+ * the real byte cost rather than a count of the gaps it appears in. A run of
+ * three spaces costs three bytes; a non-breaking space pasted out of a
+ * spreadsheet costs two; an ideographic space in a CJK keyword list costs three.
+ * A run wedged between two commas is charged once, not once per neighbour.
+ *
+ * This is the same whitespace `fixKeywords` removes when it trims each term, so
+ * for a field whose only defect is separator whitespace the two agree exactly.
+ */
+export function separatorWhitespaceBytes(raw: string): number {
+  let bytes = 0;
+  for (let i = 0; i < raw.length; ) {
+    if (!WHITESPACE.test(raw[i]!)) {
+      i++;
+      continue;
+    }
+    let end = i;
+    while (end < raw.length && WHITESPACE.test(raw[end]!)) end++;
+    if (raw[i - 1] === "," || raw[end] === ",") {
+      bytes += utf8ByteCount(raw.slice(i, end));
+    }
+    i = end;
+  }
+  return bytes;
+}
+
 /** Lint the keywords field of a scanned locale. */
 export function lintKeywords(scan: LocaleScan, config: Config): Finding[] {
   const raw = scan.fields.keywords;
@@ -43,13 +77,9 @@ export function lintKeywords(scan: LocaleScan, config: Config): Finding[] {
   const terms = rawTerms.map((t) => t.trim()).filter((t) => t.length > 0);
   const lowerTerms = terms.map((t) => t.toLowerCase());
 
-  // ASCII spaces around commas each waste one byte against the 100-byte budget.
-  let wastedSpaces = 0;
-  for (let i = 0; i < raw.length; i++) {
-    if (raw[i] !== ",") continue;
-    if (/\s/u.test(raw[i - 1] ?? "")) wastedSpaces++;
-    if (/\s/u.test(raw[i + 1] ?? "")) wastedSpaces++;
-  }
+  // Whitespace beside a comma is charged against the byte budget at its real
+  // UTF-8 width, so the report matches what `--fix` reclaims.
+  const wastedSpaces = separatorWhitespaceBytes(raw);
   if (wastedSpaces > 0) {
     push(
       "keyword-space-after-comma",

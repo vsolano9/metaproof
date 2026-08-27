@@ -6,6 +6,21 @@ All notable changes to metaproof are recorded here. The format follows
 `0.x`, a new check that can fail a previously clean run ships in a minor
 release, and every such change is called out below.
 
+## [0.5.2] - 2026-08-27
+
+### Fixed
+
+- `keyword-space-after-comma` now reports the real UTF-8 byte cost of the
+  whitespace beside each comma instead of counting one byte per gap. A run of
+  three spaces was reported as one wasted byte, a non-breaking space pasted from
+  a spreadsheet as one instead of two, and an ideographic space in a CJK keyword
+  list as one instead of three; whitespace wedged between two commas was charged
+  twice. `metaproof --fix` already reclaimed the true bytes, so the report and
+  the fixer disagreed about the same field — `alpha ,  beta ,   gamma` was
+  reported as 4 wasted bytes while `--fix` reclaimed 7. No tree's pass/fail
+  result changes: the rule fires on exactly the same fields as before, and only
+  the number in its message moves.
+
 ## [0.5.1] - 2026-08-24
 
 ### Changed

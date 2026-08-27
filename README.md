@@ -195,14 +195,14 @@ Pass `--config <file>`, or drop a `metaproof.json` in your working directory and
 ## GitHub Action
 
 ```yaml
-- uses: vsolano9/metaproof@v0.5.1
+- uses: vsolano9/metaproof@v0.5.2
   with:
     path: fastlane/metadata
     strict: "false"
 ```
 
 The exact tag keeps CI reproducible. The moving `@v0` tag points to the
-same `v0.5.1` release for users who prefer automatic compatible updates. The
+same `v0.5.2` release for users who prefer automatic compatible updates. The
 action sets up Node 24 and runs metaproof, so a failed check blocks the workflow.
 See [`action.yml`](action.yml).
 

@@ -1,8 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { lintKeywords } from "./keywords.ts";
+import { lintKeywords, separatorWhitespaceBytes } from "./keywords.ts";
 import { defaultConfig } from "./config.ts";
+import { utf8ByteCount } from "./count.ts";
+import { fixKeywords } from "./fix.ts";
 import type { LocaleScan } from "./types.ts";
 
 function scanOf(fields: LocaleScan["fields"]): LocaleScan {
@@ -78,4 +80,72 @@ test("lintKeywords respects a rule turned off in config", () => {
   cfg.rules["keyword-space-after-comma"] = "off";
   const findings = lintKeywords(scanOf({ keywords: "photo, editor" }), cfg);
   assert.equal(findings.some((f) => f.rule === "keyword-space-after-comma"), false);
+});
+
+// --- Separator-whitespace byte accounting -----------------------------------
+// The keyword budget is 100 UTF-8 bytes, so the number this rule reports has to
+// be the real byte cost of the whitespace, not a count of the runs it sits in.
+// `--fix` reclaims the true bytes, so a rule that reports anything else puts the
+// two halves of the tool into disagreement about the same field.
+
+function wastedBytes(keywords: string): number {
+  const finding = lintKeywords(scanOf({ keywords }), defaultConfig()).find(
+    (f) => f.rule === "keyword-space-after-comma",
+  );
+  if (!finding) return 0;
+  const match = /waste (\d+) byte/.exec(finding.message);
+  assert.ok(match, `no byte count in message: ${finding.message}`);
+  return Number(match[1]);
+}
+
+test("separatorWhitespaceBytes charges every byte of a multi-space run", () => {
+  assert.equal(separatorWhitespaceBytes("alpha,  beta"), 2);
+  assert.equal(separatorWhitespaceBytes("alpha ,   beta"), 4);
+  assert.equal(separatorWhitespaceBytes("alpha ,  beta ,   gamma"), 7);
+});
+
+test("separatorWhitespaceBytes charges a non-ASCII space its real UTF-8 width", () => {
+  assert.equal(separatorWhitespaceBytes("alpha, beta"), 2); // NBSP is 2 bytes
+  assert.equal(separatorWhitespaceBytes("alpha,　beta"), 3); // ideographic space is 3
+  assert.equal(separatorWhitespaceBytes("alpha,\tbeta"), 1); // tab is still 1
+});
+
+test("separatorWhitespaceBytes charges a run between two commas once", () => {
+  assert.equal(separatorWhitespaceBytes("alpha, ,beta"), 1);
+  assert.equal(separatorWhitespaceBytes("alpha,   ,beta"), 3);
+});
+
+test("separatorWhitespaceBytes ignores whitespace that is not next to a comma", () => {
+  assert.equal(separatorWhitespaceBytes("photo editor,camera"), 0);
+  assert.equal(separatorWhitespaceBytes("photo,editor"), 0);
+  assert.equal(separatorWhitespaceBytes("  photo,editor  "), 0);
+});
+
+test("lintKeywords reports the real byte cost of separator whitespace", () => {
+  assert.equal(wastedBytes("alpha, beta"), 1);
+  assert.equal(wastedBytes("alpha,  beta"), 2);
+  assert.equal(wastedBytes("alpha ,  beta ,   gamma"), 7);
+  assert.equal(wastedBytes("alpha, beta"), 2);
+  assert.equal(wastedBytes("alpha,　beta"), 3);
+});
+
+test("the reported waste equals the bytes --fix reclaims on a spaces-only field", () => {
+  // Fields whose only defect is separator whitespace: no empty terms, no
+  // duplicates, so `--fix` reclaims exactly the bytes this rule reports.
+  for (const keywords of [
+    "alpha, beta",
+    "alpha,  beta",
+    "alpha ,  beta ,   gamma",
+    "alpha, beta",
+    "alpha,　beta,　delta",
+    "photo editor , camera",
+  ]) {
+    const fix = fixKeywords(keywords);
+    const reclaimed = utf8ByteCount(fix.before) - utf8ByteCount(fix.after);
+    assert.equal(
+      wastedBytes(keywords),
+      reclaimed,
+      `report and --fix disagree for ${JSON.stringify(keywords)}`,
+    );
+  }
 });
