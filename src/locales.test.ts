@@ -9,6 +9,67 @@ test("isKnownLocale accepts common App Store locale codes", () => {
   }
 });
 
+test("isKnownLocale accepts every locale in Apple's App Store Connect API table", async (t) => {
+  const appleAppStoreLocales = [
+    "ar-SA",
+    "bn-BD",
+    "ca",
+    "zh-Hans",
+    "zh-Hant",
+    "hr",
+    "cs",
+    "da",
+    "nl-NL",
+    "en-AU",
+    "en-CA",
+    "en-GB",
+    "en-US",
+    "fi",
+    "fr-FR",
+    "fr-CA",
+    "de-DE",
+    "el",
+    "gu-IN",
+    "he",
+    "hi",
+    "hu",
+    "id",
+    "it",
+    "ja",
+    "kn-IN",
+    "ko",
+    "ms",
+    "ml-IN",
+    "mr-IN",
+    "no",
+    "or-IN",
+    "pl",
+    "pt-BR",
+    "pt-PT",
+    "pa-IN",
+    "ro",
+    "ru",
+    "sk",
+    "sl-SI",
+    "es-MX",
+    "es-ES",
+    "sv",
+    "ta-IN",
+    "te-IN",
+    "th",
+    "tr",
+    "uk",
+    "ur-PK",
+    "vi",
+  ];
+  assert.equal(appleAppStoreLocales.length, 50);
+  for (const code of appleAppStoreLocales) {
+    await t.test(code, () => {
+      assert.equal(isKnownLocale(code), true, code);
+    });
+  }
+});
+
 test("isKnownLocale accepts the fastlane 'default' fallback folder", () => {
   assert.equal(isKnownLocale("default"), true);
 });

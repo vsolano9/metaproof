@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 import { scanMetadata } from "./scan.ts";
 import { defaultConfig } from "./config.ts";
@@ -121,6 +121,15 @@ test("scanMetadata treats config.locales.extra codes as known", async () => {
   const result = await scanMetadata(root, cfg);
   const xx = result.locales.find((l) => l.locale === "xx-YY");
   assert.equal(xx?.isKnownLocale, true);
+  assert.equal(result.diagnostics.some((d) => d.rule === "unknown-locale"), false);
+});
+
+test("scanMetadata accepts Apple's newer App Store locale folders such as ta-IN", async () => {
+  const root = resolve(import.meta.dirname, "..", "fixtures", "metadata-new-locales");
+  const result = await scanMetadata(root, defaultConfig());
+  const ta = result.locales.find((l) => l.locale === "ta-IN");
+  assert.ok(ta);
+  assert.equal(ta.isKnownLocale, true);
   assert.equal(result.diagnostics.some((d) => d.rule === "unknown-locale"), false);
 });
 

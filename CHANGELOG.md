@@ -6,6 +6,19 @@ All notable changes to metaproof are recorded here. The format follows
 `0.x`, a new check that can fail a previously clean run ships in a minor
 release, and every such change is called out below.
 
+## [0.6.1] - 2026-09-02
+
+### Fixed
+
+- `unknown-locale` no longer flags the 11 App Store locales Apple and fastlane
+  now accept: `bn-BD`, `gu-IN`, `kn-IN`, `ml-IN`, `mr-IN`, `or-IN`, `pa-IN`,
+  `sl-SI`, `ta-IN`, `te-IN`, `ur-PK`. A valid `metadata/ta-IN/` folder was
+  reported as unknown. Apple's [App Store localizations](https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations)
+  reference and the [App Store Connect API locale-shortcode table](https://developer.apple.com/documentation/appstoreconnectapi/managing-metadata-in-your-app-by-using-locale-shortcodes)
+  list 50 locales; fastlane `FastlaneCore::Languages::ALL_LANGUAGES` in
+  `fastlane_core/lib/fastlane_core/languages.rb` on `master` matches. `KNOWN_LOCALES`
+  now holds that table plus the fastlane `default` fallback.
+
 ## [0.6.0] - 2026-08-27
 
 ### Fixed
@@ -156,6 +169,8 @@ Superseded by 0.3.0, which carries this fix.
   programmatic `lint()` API, and a GitHub Action. Zero dependencies, fully
   offline.
 
+[0.6.1]: https://github.com/vsolano9/metaproof/releases/tag/v0.6.1
+[0.6.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.6.0
 [0.5.1]: https://github.com/vsolano9/metaproof/releases/tag/v0.5.1
 [0.5.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.5.0
 [0.4.0]: https://github.com/vsolano9/metaproof/releases/tag/v0.4.0

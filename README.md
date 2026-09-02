@@ -219,14 +219,14 @@ If a tree legitimately has no locales, point metaproof at the right path or fix
 ## GitHub Action
 
 ```yaml
-- uses: vsolano9/metaproof@v0.6.0
+- uses: vsolano9/metaproof@v0.6.1
   with:
     path: fastlane/metadata
     strict: "false"
 ```
 
 The exact tag keeps CI reproducible. The moving `@v0` tag points to the
-same `v0.6.0` release for users who prefer automatic compatible updates. The
+same `v0.6.1` release for users who prefer automatic compatible updates. The
 action sets up Node 24 and runs metaproof, so a failed check blocks the workflow.
 See [`action.yml`](action.yml).
 
