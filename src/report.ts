@@ -6,6 +6,7 @@
  * `NO_COLOR` or `--no-color`. JSON output is the same data the API returns.
  */
 
+import { colors, reset } from "./colors.generated.ts";
 import type { LintReport, Severity } from "./types.ts";
 
 export interface HumanOptions {
@@ -16,16 +17,16 @@ export interface HumanOptions {
 }
 
 const COLORS: Record<Severity | "reset" | "dim" | "green", string> = {
-  error: "\u001b[31m",
-  warning: "\u001b[33m",
-  info: "\u001b[36m",
-  green: "\u001b[32m",
-  dim: "\u001b[2m",
-  reset: "\u001b[0m",
+  error: colors.error,
+  warning: colors.warning,
+  info: colors.info,
+  green: colors.success,
+  dim: colors.muted,
+  reset,
 };
 
 function paint(text: string, code: string, color: boolean): string {
-  return color ? `${code}${text}${COLORS.reset}` : text;
+  return color ? `${code}${text}${reset}` : text;
 }
 
 /** Pretty JSON, matching the programmatic report shape. */

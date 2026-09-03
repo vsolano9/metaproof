@@ -141,6 +141,24 @@ test("run --no-color emits no ANSI escape codes", async () => {
   assert.equal(io.out.includes("["), false);
 });
 
+test("run with NO_COLOR emits no ANSI escape codes even on a TTY", async () => {
+  const { root } = await makeMetadata({ "en-US/name.txt": "way too long an app name to ever fit here" });
+  const io = fakeIo({ isTTY: true, env: { NO_COLOR: "1" } });
+  await run([root], io);
+  assert.equal(io.out.includes("\u001b["), false);
+  assert.match(io.out, /FAIL/);
+  assert.match(io.out, /error/);
+});
+
+test("run on a TTY without NO_COLOR emits generated ANSI codes", async () => {
+  const { root } = await makeMetadata({ "en-US/name.txt": "way too long an app name to ever fit here" });
+  const io = fakeIo({ isTTY: true, env: {} });
+  await run([root], io);
+  assert.equal(io.out.includes("\u001b[31m"), true);
+  assert.equal(io.out.includes("\u001b[0m"), true);
+  assert.match(io.out, /FAIL/);
+});
+
 test("run auto-loads metaproof.json from the working directory", async () => {
   const { root, base } = await makeMetadata({ ...SUBMITTABLE, "en-US/subtitle.txt": "twelve chars" });
   await writeFile(join(base, "metaproof.json"), JSON.stringify({ limits: { subtitle: 10 } }), "utf8");
