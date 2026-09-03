@@ -252,7 +252,7 @@ npm run build       # compile the published package
 
 ## Design
 
-`DESIGN.md` at the repo root is the visual system; read it before UI, asset, or layout work. Gate: `node "/Volumes/Extreme Pro/Documents/Work/_tools/designmd/bin/designmd.mjs" lint DESIGN.md` → 0 errors. Theme files listed under `tcv.exports` are generated; edit DESIGN.md and re-export.
+`DESIGN.md` at the repo root is the visual system; read it before UI, asset, or layout work. Theme files listed under `tcv.exports` are generated; edit DESIGN.md and re-export instead of editing those files.
 
 ## Changelog
 
