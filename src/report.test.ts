@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { exitCode, renderHuman, renderJson } from "./report.ts";
+import { colors, paint } from "./colors.generated.ts";
 import type { Finding, LintReport, LocaleReport } from "./types.ts";
 
 function reportOf(locales: LocaleReport[]): LintReport {
@@ -45,6 +46,30 @@ test("renderHuman shows PASS for a clean report", () => {
   const report = reportOf([{ locale: "en-US", findings: [], ok: true }]);
   const out = renderHuman(report, { color: false });
   assert.match(out, /PASS/);
+});
+
+test("renderHuman with color uses generated ANSI codes", () => {
+  const report = reportOf([{ locale: "en-US", findings: [errFinding], ok: false }]);
+  const out = renderHuman(report, { color: true });
+  assert.equal(out.includes(colors.error), true);
+  assert.equal(out.includes("\u001b[0m"), true);
+  assert.match(out, /FAIL/);
+  assert.match(out, /✖/);
+});
+
+test("generated paint honors NO_COLOR and --no-color, and paints when color is on", () => {
+  const prev = process.env.NO_COLOR;
+  try {
+    process.env.NO_COLOR = "1";
+    assert.equal(paint("FAIL", "error"), "FAIL");
+    delete process.env.NO_COLOR;
+    const painted = paint("FAIL", "error");
+    assert.equal(painted.startsWith(colors.error), true);
+    assert.equal(painted.endsWith("\u001b[0m"), true);
+  } finally {
+    if (prev === undefined) delete process.env.NO_COLOR;
+    else process.env.NO_COLOR = prev;
+  }
 });
 
 test("renderHuman quiet mode hides clean locales and info findings", () => {
